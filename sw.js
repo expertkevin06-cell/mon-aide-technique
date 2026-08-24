@@ -1,43 +1,45 @@
-const CACHE_NAME = 'at-kevin-v8';
-
-const FILES = [
+// ===== Service Worker — Analyse Technique Kevin =====
+const CACHE_NAME = 'at-kevin-v4';
+const CACHE_FILES = [
   '/',
   '/index.html',
-  '/manifest.json',
   '/style.css',
+  '/manifest.json',
   '/js/db.js',
   '/js/app.js',
   '/js/admin.js',
-  '/js/ai.js',
-  '/icons/icon.svg',
   '/icons/icon-192.png',
   '/icons/icon-512.png'
 ];
 
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES))
-      .then(() => self.skipWaiting())
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(CACHE_FILES))
   );
+  self.skipWaiting();
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(
+self.addEventListener('activate', event => {
+  event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    )
   );
+  self.clients.claim();
 });
 
-self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
-  e.respondWith(
-    fetch(e.request)
-      .then(res => {
-        const clone = res.clone();
-        caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
-        return res;
-      })
-      .catch(() => caches.match(e.request))
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request).then(networkResponse => {
+        if (event.request.method === 'GET' && networkResponse.ok) {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return networkResponse;
+      }).catch(() => {
+        if (event.request.mode === 'navigate') return caches.match('/index.html');
+      });
+    })
   );
 });
