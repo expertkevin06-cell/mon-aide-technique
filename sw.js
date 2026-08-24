@@ -4,7 +4,7 @@
 //    (v2 → v3 → v4...) pour forcer les téléphones à recharger
 // ============================================================
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = 'at-kevin-cache-' + CACHE_VERSION;
 
 const FICHIERS_A_CACHER = [
