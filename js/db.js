@@ -1,17 +1,36 @@
-// ===== Base de données — remplacez les exemples par vos rappels réels =====
-const DB = [
-  {
-    marque: "RENAULT",
-    modele: "Clio IV",
-    annee: "2015-2019",
-    titre: "Rappel — Boîte EDC",
-    details: "Mise à jour du logiciel de gestion de la boîte automatique EDC.\nContactez votre concessionnaire Renault."
-  },
-  {
-    marque: "PEUGEOT",
-    modele: "3008",
-    annee: "2017-2020",
-    titre: "Rappel — AdBlue",
-    details: "Vérification du circuit AdBlue et mise à jour du calculateur moteur."
-  }
-];
+// ===== Recherche et affichage =====
+const searchInput = document.getElementById('search');
+const resultsDiv = document.getElementById('results');
+const emptyState = document.getElementById('empty-state');
+
+function getData() {
+  const custom = localStorage.getItem('at-custom-data');
+  return custom ? JSON.parse(custom) : DB;
+}
+
+function render(list) {
+  resultsDiv.innerHTML = '';
+  emptyState.style.display = list.length ? 'none' : 'block';
+  list.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML =
+      '<div class="meta">' + item.marque + ' • ' + item.modele + ' (' + item.annee + ')</div>' +
+      '<h3>' + item.titre + '</h3>' +
+      '<p>' + item.details + '</p>';
+    resultsDiv.appendChild(card);
+  });
+}
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.toLowerCase().trim();
+  if (!q) { render([]); return; }
+  const data = getData();
+  const found = data.filter(item =>
+    (item.marque + ' ' + item.modele + ' ' + item.annee + ' ' + item.titre + ' ' + item.details)
+    .toLowerCase().includes(q)
+  );
+  render(found);
+});
+
+render([]);
