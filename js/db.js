@@ -1,9 +1,6 @@
-// ============================================================
 // ===== BASE DE DONNÉES — Analyse Technique Kevin =====
-// Période 2018-2026 — v3 enrichie
-// Sources : RappelConso, OVS, Safety Gate UE, NHTSA, ateliers
-// ⚠️ Vérification VIN officielle : ovs.economie.gouv.fr
-// ============================================================
+// Période 2018-2026 — v3 | Sources : RappelConso, OVS, Safety Gate, NHTSA
+// ⚠️ Vérification VIN : ovs.economie.gouv.fr
 const DB = [
 {marque:"PEUGEOT",modele:"208 II",moteur:"1.2 PureTech 75/100/130",annee:"2019-2026",dtc:"P1336/P1339",source:"RappelConso",titre:"Courroie humide dégradée",details:"Fragments courroie bain d'huile → colmatage crépine.\n⚠️ Risque casse moteur.\nRemplacement courroie + crépine + huile."},
 {marque:"PEUGEOT",modele:"2008 II",moteur:"1.2 PureTech / 1.5 BlueHDi",annee:"2020-2026",dtc:"P1336/P20EE",source:"RappelConso",titre:"Courroie humide + SCR AdBlue",details:"Contrôle courroie 30 000 km.\nInjecteur AdBlue cristallisé : nettoyage + reprog."},
@@ -17,9 +14,9 @@ const DB = [
 {marque:"CITROEN",modele:"ë-C4 / ë-C3",moteur:"Électrique 136 ch",annee:"2021-2026",dtc:"P1B34/P1AF0",source:"Safety Gate",titre:"Charge DC + onduleur e-CMP",details:"Arrêts charge CCS.\nCampagnes onduleur + BMS."},
 {marque:"CITROEN",modele:"C5 Aircross",moteur:"PureTech/BlueHDi/Hybrid 225",annee:"2018-2026",dtc:"P0A80",source:"RappelConso",titre:"Refroidissement batterie HT",details:"Pompe HS → limitation puissance.\nRemplacement + purge."},
 {marque:"CITROEN",modele:"Berlingo III / ë-Berlingo",moteur:"PureTech/BlueHDi/Électrique",annee:"2018-2026",dtc:"(onduleur)",source:"Safety Gate",titre:"Suspension AR + onduleur EV",details:"Amortisseurs fatigués en charge.\nEV : campagne onduleur."},
-{marque:"OPEL",modele:"Zafira / Vivaro Fourgonnette",moteur:"VUL — toutes motorisations",annee:"2025-2026",dtc:"(câble démarreur)",source:"RappelConso 05/06/2026",titre:"⚠️ Câble démarreur — risque INCENDIE",details:"Contact câble positif/corps démarreur → arc électrique, incendie compartiment moteur.\nVIN plage complète concessionnaire (ex. VXKEVFC17UR361210→VXKEVP33STU39295).\nGTIN : 2207/46*05232*24,*21,*23\n✅ Remédiation gratuite."},
+{marque:"OPEL",modele:"Zafira / Vivaro Fourgonnette",moteur:"VUL — toutes motorisations",annee:"2025-2026",dtc:"(câble démarreur)",source:"RappelConso 05/06/2026",titre:"⚠️ Câble démarreur — risque INCENDIE",details:"Contact câble positif/corps démarreur → arc électrique, incendie compartiment moteur.\nVIN plage complète concessionnaire.\nGTIN : 2207/46*05232*24,*21,*23\n✅ Remédiation gratuite."},
 {marque:"OPEL",modele:"Corsa F / Mokka-e",moteur:"PureTech/Diesel/Électrique 136",annee:"2019-2026",dtc:"P1336/P1AF0",source:"Safety Gate",titre:"Courroie humide + onduleur",details:"Contrôle courroie 30 000 km.\nEV : campagne onduleur."},
-{marque:"OPEL",modele:"Astra L",moteur:"1.2 PureTech / Hybride 136/180",annee:"2022-2026",dtc:"P1336",source:"Ateliers",titre:"Courroie + hybridation 48V",details:"Contrôles courroie rapprochés.\nMAJ logiciel système mild-hybrid."},
+{marque:"OPEL",modele:"Astra L",moteur:"1.2 PureTech / Hybride 136/180",annee:"2022-2026",dtc:"P1336",source:"Ateliers",titre:"Courroie + hybridation 48V",details:"Contrôles courroie rapprochés.\nMAJ logiciel mild-hybrid."},
 {marque:"DS",modele:"DS3 Crossback E-Tense",moteur:"PureTech/Électrique",annee:"2019-2026",dtc:"P1AF0",source:"Safety Gate",titre:"Onduleur e-CMP",details:"Campagne remplacement version électrique."},
 {marque:"DS",modele:"DS4 II / DS7 E-Tense",moteur:"PureTech/Hybride 225-300",annee:"2019-2026",dtc:"P0A80/P1A00",source:"Ateliers",titre:"e-EAT8 à-coups + suspension active",details:"Reprog TCU.\nDS Active Scan : recalibration caméra."},
 {marque:"RENAULT",modele:"Clio V / Captur II",moteur:"TCe 90-155 / SCe / E-Tech 145",annee:"2019-2026",dtc:"P008700",source:"Ateliers",titre:"Pompe HP TCe + boîte E-Tech",details:"Démarrages difficiles : pompe haute pression.\nE-Tech : reprog multimode si à-coups."},
@@ -40,7 +37,7 @@ const DB = [
 {marque:"VOLKSWAGEN",modele:"T-Roc / Tiguan II-III / Taigo",moteur:"TSI/TDI 110-190",annee:"2018-2026",dtc:"P2463",source:"Ateliers",titre:"FAP + AdBlue + DSG DQ381",details:"Vidange DSG 60 000 km conseillée."},
 {marque:"VOLKSWAGEN",modele:"Caddy V / Transporter",moteur:"TSI/TDI",annee:"2018-2026",dtc:"—",source:"Ateliers",titre:"Embrayage DSG humide en charge",details:"Patine lourde : remplacement embrayage."},
 {marque:"AUDI",modele:"A3 8Y / Q2 / Q3",moteur:"TFSI/TDI 110-190",annee:"2018-2026",dtc:"P06DD00",source:"Safety Gate",titre:"ACT + consommation huile EA211",details:"Mesure si >0,5L/1000km."},
-{marque:"AUDI",modele:"A4-A8 / Q5/Q7",moteur:"TDI/TFSI/Hybrides",annee:"2018-2026",dtc:"P20EE00",source:"OVS/RappelConso",titre:"SCR inefficace + prétensionneurs Q5",details:"Kit SCR + reprog.\nQ5 2025-26 : prétensionneur ceinture non conforme (campagne 22/05/2026) → remplacement gratuit."},
+{marque:"AUDI",modele:"A4-A8 / Q5/Q7",moteur:"TDI/TFSI/Hybrides",annee:"2018-2026",dtc:"P20EE00",source:"OVS/RappelConso",titre:"SCR inefficace + prétensionneurs Q5",details:"Kit SCR + reprog.\nQ5 2025-26 : prétensionneur ceinture non conforme → remplacement gratuit."},
 {marque:"AUDI",modele:"Q4/Q6 e-tron / e-tron GT",moteur:"Électrique PPE/MEB",annee:"2021-2026",dtc:"—",source:"RappelConso",titre:"Charge AC/DC limitée",details:"Campagnes logiciel BMS."},
 {marque:"AUDI",modele:"RS3/RS6/RS7",moteur:"2.5/4.0 TFSI",annee:"2018-2026",dtc:"—",source:"Ateliers",titre:"Embrayage DSG RS usé",details:"Contrôles rapprochés usage intensif."},
 {marque:"BMW",modele:"Série 1 F40 / X1/X2",moteur:"B38/B48/B47",annee:"2018-2026",dtc:"—",source:"Ateliers",titre:"Chaîne distribution B38",details:"Claquements à froid : contrôle tendeur."},
@@ -64,51 +61,50 @@ const DB = [
 {marque:"FIAT",modele:"500 / 500e / Panda / Ducato",moteur:"FireFly/Hybride/EV/Multijet",annee:"2018-2026",dtc:"(BMS)",source:"RappelConso",titre:"500e BMS + Ducato ABS",details:"Arrêts charge DC 500e.\nDucato : capteurs ABS AR."},
 {marque:"ALFA ROMEO",modele:"Giulia / Stelvio / Tonale / Junior",moteur:"Essence/Diesel/Hybride/EV",annee:"2018-2026",dtc:"(Tricam)",source:"Ateliers",titre:"ADAS Tricam fantômes",details:"Recalibration caméra.\nJunior EV : suivi jeunes séries."},
 {marque:"LANCIA",modele:"Ypsilon III",moteur:"Hybrid 100 / Électrique 156",annee:"2024-2026",dtc:"—",source:"Ateliers",titre:"Modèle récent — suivi jeune",details:"Suivi MAJ Stellantis."},
-{marque:"FORD",modele:"Fiesta VII / Focus IV / Puma",moteur:"EcoBoost 1.0 mHEV/Powershift",annee:"2018-2026",dtc:"P0715/P0299",source:"NHTSA",titre:"Powershift + turbo",details:"Embrayage sec patine.\nWastegate si mode dégradé."},
+{marque:"FORD",modele:"Fiesta VII / Focus IV / Puma",moteur:"Eco 1.0 mHEV/Powershift",annee:"2018-2026",dtc:"P0715/P0299",source:"NHTSA",titre:"Powershift + turbo",details:"Embrayage sec patine.\nWastegate si mode dégradé."},
 {marque:"FORD",modele:"Kuga II/III / Kuga PHEV",moteur:"EcoBlue/2.5 PHEV 225",annee:"2018-2026",dtc:"P0A7F",source:"🚨 Rappel majeur UE",titre:"INCENDIE batterie PHEV",details:"Cellules Samsung SDI.\n🚨 NE PAS CHARGER — remplacement pack."},
 {marque:"FORD",modele:"Explorer / Mustang Mach-E",moteur:"PHEV/Électrique 269-487",annee:"2020-2026",dtc:"—",source:"Safety Gate",titre:"Mach-E coupures traction",details:"Contacteurs HT : campagnes UE/NHTSA."},
 {marque:"TESLA",modele:"Model 3 / Model Y (+Highland/Juniper)",moteur:"Électrique RWD/LR/Perf",annee:"2019-2026",dtc:"(OTA)",source:"NHTSA/UE",titre:"Autopilot stop fantôme + ceintures Y",details:"Corrections OTA.\nY 2021-22 : ceintures AR retorque."},
-{marque:"CHEVROLET / GMC / DODGE (import)",moteur:"Essence V6-V8/Électrique",annee:"2018-2026",dtc:"—",source:"NHTSA",titre:"Import US — vérifier rappels",details:"✅ Vérifier VIN sur nhtsa.gov/recalls."},
+{marque:"CHEVROLET / GMC / DODGE (import)",modele:"Pickups & SUV US",moteur:"Essence V6-V8/Électrique",annee:"2018-2026",dtc:"—",source:"NHTSA",titre:"Import US — vérifier rappels",details:"✅ Vérifier VIN sur nhtsa.gov/recalls."},
+{marque:"TOYOTA",modele:"Yaris IV / Yaris Cross / Corolla XII",moteur:"Hybride 116-140 ch",annee:"2020-2026",dt
 {marque:"TOYOTA",modele:"Yaris IV / Yaris Cross / Corolla XII",moteur:"Hybride 116-140 ch",annee:"2020-2026",dtc:"P0A93/P26DB00",source:"OVS/Safety Gate",titre:"Pompe inverter + transmission AWD-i",details:"Arrêt hybride possible ; moteur arrière désactivé.\nRemplacement pompe + reprog."},
-{marque:"TOYOTA",modele:"RAV4 V / Corolla",moteur:"Hybride",annee:"2019-2026",dtc:"P26DB00",source:"🚨 Safety Gate",titre:"Boulons roue + pompe freinage",details:"RAV4 2019-21 : retorque boulons.\nPompe frein : course pédale longue, ABS."},
-{marque:"TOYOTA",modele:"bZ4X",moteur:"Électrique",annee:"2022-2026",dtc:"—",source:"🚨 Safety Gate majeur",titre:"Vis de moyeu — décollement roue",details:"Immobilisation mondiale temporaire.\nRemplacement vis toutes roues."},
+{marque:"TOYOTA",modele:"RAV4 V",moteur:"Hybride 218/306 ch",annee:"2019-2026",dtc:"P26DB00",source:"🚨 Safety Gate",titre:"Boulons roue + pompe freinage",details:"RAV4 2019-21 : retorque boulons.\nPompe frein : course pédale longue, ABS."},
+{marque:"TOYOTA",modele:"bZ4X",moteur:"Électrique 204-338 ch",annee:"2022-2026",dtc:"—",source:"🚨 Safety Gate majeur",titre:"Vis de moyeu — décollement roue",details:"Immobilisation mondiale temporaire en 2022.\nRemplacement vis toutes roues."},
 {marque:"TOYOTA",modele:"Hilux / Land Cruiser 250/300",moteur:"2.8 D-4D / 3.3 V6 diesel",annee:"2018-2026",dtc:"P2463/P20EE",source:"Ateliers",titre:"FAP/SCR utilitaires",details:"Colmatages, cristallisation AdBlue."},
 {marque:"LEXUS",modele:"NX II / RX V / ES",moteur:"350h/450h+/500h",annee:"2021-2026",dtc:"P0A80",source:"Safety Gate",titre:"Batterie HT déséquilibrée",details:"Diagnostic modules + campagne."},
-{marque:"NISSAN",modele:"Micra / Juke II / Qashqai III",moteur:"1.0 DIG-T HR13DDT",annee:"2019-2026",dtc:"P152500/P15A100",source:"Ateliers",titre:"Chaîne distribution tendue",details:"Claquements démarrage : chaîne+tendeur."},
-{marque:"NISSAN",modele:"Qashqai III / X-Trail IV e-Power",moteur:"e-Power 190/213",annee:"2022-2026",dtc:"(inverter)",source:"Safety Gate",titre:"Onduleur e-Power",details:"Coupure propulsion : campagne."},
-{marque:"NISSAN",modele:"Leaf ZE1",moteur:"Électrique 150/218",annee:"2018-2026",dtc:"U1000",source:"Ateliers",titre:"Dégradation batterie sans TMS",details:"LeafSpy SOH — pack si <70%."},
-{marque:"HONDA",modele:"Jazz V / CR-V VI / Civic XI / ZR-V",moteur:"e:HEV i-MMD",annee:"2020-2026",dtc:"P16E9/(Connect)",source:"Ateliers/RappelConso",titre:"Batterie HT + freeze Honda Connect",details:"Diagnostic modules + firmware."},
-{marque:"MAZDA",modele:"CX-60 / CX-80 PHEV",moteur:"PHEV 327 ch",annee:"2022-2026",dtc:"—",source:"🚨 Safety Gate",titre:"Arrêt moteur hybride en roulant",details:"Reprog complète système."},
-{marque:"MAZDA",modele:"Mazda3 / CX-30 Skyactiv-X",moteur:"Skyactiv-X MHEV",annee:"2019-2026",dtc:"P2002",source:"Ateliers",titre:"SPCS/FAP inefficace",details:"Régénérations fréquentes."},
-{marque:"SUZUKI",modele:"Swift / Vitara / S-Cross / Across",moteur:"1.4 Boosterjet Hybrid / PHEV",annee:"2018-2026",dtc:"P0299/P0420",source:"Ateliers",titre:"Turbo + catalyseur",details:"Actuateur + sondes lambda."},
-{marque:"SUZUKI",modele:"Jimny IV",moteur:"1.5 K15B",annee:"2019-2026",dtc:"—",source:"Safety Gate",titre:"⚠️ Airbag Takata",details:"PRIORITÉ : remplacement gonfleur."},
-{marque:"SUBARU",modele:"Forester / Outback / Crosstrek",moteur:"Boxer e-Boxer",annee:"2018-2026",dtc:"(EyeSight)",source:"NHTSA/Safety Gate",titre:"EyeSight freinage intempestif + PCV",details:"Recalibration caméras stéréo.\nImpreza/XV : soupape PCV huile."},
-{marque:"MITSUBISHI",modele:"Outlander IV PHEV / Eclipse Cross",moteur:"PHEV",annee:"2018-2026",dtc:"P0A80",source:"RappelConso",titre:"Batterie HT + OBC",details:"Diagnostic modules + remplacement OBC."},
-{marque:"HYUNDAI",modele:"Kona Electric I",moteur:"Électrique",annee:"2018-2021",dtc:"(cellules LG)",source:"🚨 Rappel ~82 000 véhicules",titre:"INCENDIE batterie HT",details:"Remplacement intégral pack."},
-{marque:"HYUNDAI",modele:"IONIQ 5 / IONIQ 6",moteur:"Électrique E-GMP",annee:"2021-2026",dtc:"(ICCU/LG)",source:"🚨 Safety Gate",titre:"ICCU + cellules LG",details:"Charge impossible + incendie.\nCampagnes ICCU + pack."},
-{marque:"HYUNDAI",modele:"Tucson IV / Santa Fe",moteur:"Diesel/Hybride",annee:"2019-2026",dtc:"C123304/P244D00",source:"🚨 Safety Gate",titre:"Bloc ABS HECU fuyard + EGR",details:"Perte assistance freinage progressive.\nSanta Fe CRDi : refroidisseur EGR incendie."},
-{marque:"KIA",modele:"EV6 / EV9",moteur:"Électrique E-GMP",annee:"2021-2026",dtc:"(ICCU)",source:"Safety Gate",titre:"ICCU + logiciels ADAS",details:"Campagnes remplacement ICCU + OTA."},
-{marque:"KIA",modele:"Sportage V / Niro",moteur:"Hybride/PHEV",annee:"2021-2026",dtc:"C123304",source:"Safety Gate",titre:"HECU fuyard",details:"Remplacement bloc ABS."},
-{marque:"KIA",modele:"Stonic / Picanto / Stinger",moteur:"Essence",annee:"2018-2026",dtc:"—",source:"Ateliers",titre:"Spiral câble airbag volant",details:"Témoin airbag, klaxon intermittent."},
-{marque:"MG (SAIC)",modele:"MG4 EV / ZS EV / MG5 / HS",moteur:"Électrique/Essence PHEV",annee:"2021-2026",dtc:"(BMS/onduleur)",source:"RappelConso",titre:"Arrêts charge CCS + onduleur",details:"MAJ BMS SAIC.\nHS : suivi jeunes séries."},
-{marque:"BYD",modele:"Atto 3 / Dolphin / Seal / Seal U",moteur:"Électrique LFP/PHEV",annee:"2022-2026",dtc:"(ADAS/charge)",source:"Ateliers",titre:"ADAS imprécis + charge erratique",details:"Courbes DC irrégulières.\nSeal U DM-i : MAJ hybride."},
+{marque:"NISSAN",modele:"Micra / Juke II / Qashqai III",moteur:"1.0 DIG-T HR13DDT",annee:"2019-2026",dtc:"P152500/P15A100",source:"Ateliers",titre:"Chaîne distribution tendue",details:"Claquements démarrage : chaîne + tendeur."},
+{marque:"NISSAN",modele:"Qashqai III e-Power / X-Trail IV e-Power",moteur:"e-Power 190/213 ch",annee:"2022-2026",dtc:"(inverter)",source:"Safety Gate",titre:"Onduleur e-Power",details:"Coupure propulsion possible : campagne."},
+{marque:"NISSAN",modele:"Leaf ZE1",moteur:"Électrique 150/218 ch",annee:"2018-2026",dtc:"U1000",source:"Ateliers",titre:"Dégradation batterie sans TMS",details:"Contrôle SOH (LeafSpy) — pack si <70%."},
+{marque:"HONDA",modele:"Jazz V / CR-V VI / Civic XI / ZR-V",moteur:"e:HEV i-MMD",annee:"2020-2026",dtc:"P16E9/(Connect)",source:"Ateliers/RappelConso",titre:"Batterie HT + freeze Honda Connect",details:"Diagnostic modules + firmware écran."},
+{marque:"MAZDA",modele:"CX-60 / CX-80 PHEV",moteur:"PHEV 327 ch",annee:"2022-2026",dtc:"—",source:"🚨 Safety Gate",titre:"Arrêt moteur hybride en roulant",details:"Reprog complète du système hybride."},
+{marque:"MAZDA",modele:"Mazda3 / CX-30 Skyactiv-X",moteur:"Skyactiv-X MHEV",annee:"2019-2026",dtc:"P2002",source:"Ateliers",titre:"SPCS/FAP inefficace",details:"Régénérations fréquentes urbain."},
+{marque:"SUZUKI",modele:"Swift / Vitara / S-Cross / Across",moteur:"1.4 Boosterjet Hybrid / PHEV",annee:"2018-2026",dtc:"P0299/P0420",source:"Ateliers",titre:"Turbo + catalyseur",details:"Actuateur wastegate + sondes lambda."},
+{marque:"SUZUKI",modele:"Jimny IV",moteur:"1.5 K15B",annee:"2019-2026",dtc:"—",source:"Safety Gate",titre:"⚠️ Airbag Takata",details:"PRIORITÉ MAXIMALE : remplacement gonfleur gratuit."},
+{marque:"SUBARU",modele:"Forester / Outback / Crosstrek",moteur:"Boxer e-Boxer",annee:"2018-2026",dtc:"(EyeSight)",source:"NHTSA/Safety Gate",titre:"EyeSight freinage intempestif + PCV",details:"Recalibration caméras stéréo.\nSoupape PCV fuyarde → consommation huile."},
+{marque:"MITSUBISHI",modele:"Outlander IV PHEV / Eclipse Cross PHEV",moteur:"PHEV 188-230 ch",annee:"2018-2026",dtc:"P0A80",source:"RappelConso",titre:"Batterie HT + OBC",details:"Diagnostic modules + remplacement chargeur OBC."},
+{marque:"HYUNDAI",modele:"Kona Electric I",moteur:"Électrique 136/204 ch",annee:"2018-2021",dtc:"(cellules LG)",source:"🚨 Rappel ~82 000 véhicules",titre:"INCENDIE batterie HT",details:"Cellules LG défectueuses.\nRemplacement intégral pack batterie."},
+{marque:"HYUNDAI",modele:"IONIQ 5 / IONIQ 6",moteur:"Électrique E-GMP 168-325 ch",annee:"2021-2026",dtc:"(ICCU/LG)",source:"🚨 Safety Gate",titre:"ICCU défaillant + cellules LG",details:"Charge 12V impossible + risque incendie.\nCampagnes ICCU + pack batterie."},
+{marque:"HYUNDAI",modele:"Tucson IV / Santa Fe",moteur:"Diesel CRDi/Hybride",annee:"2019-2026",dtc:"C123304/P244D00",source:"🚨 Safety Gate",titre:"Bloc ABS HECU fuyard + EGR diesel",details:"Perte progressive assistance freinage.\nSanta Fe CRDi : refroidisseur EGR — risque incendie."},
+{marque:"KIA",modele:"EV6 / EV9",moteur:"Électrique E-GMP 229-585 ch",annee:"2021-2026",dtc:"(ICCU)",source:"Safety Gate",titre:"ICCU + logiciels ADAS",details:"Campagnes remplacement ICCU + MAJ OTA."},
+{marque:"KIA",modele:"Sportage V / Niro HEV/PHEV",moteur:"Hybride 230-265 ch",annee:"2021-2026",dtc:"C123304",source:"Safety Gate",titre:"HECU fuyard",details:"Remplacement bloc ABS sous campagne."},
+{marque:"KIA",modele:"Stonic / Picanto / Stinger",moteur:"Essence T-GDi 100-370",annee:"2018-2026",dtc:"—",source:"Ateliers",titre:"Spiral câble airbag volant",details:"Témoin airbag, klaxon intermittent.\nRemplacement spiral."},
+{marque:"MG (SAIC)",modele:"MG4 EV / ZS EV / MG5 EV / HS",moteur:"Électrique/Essence/PHEV",annee:"2021-2026",dtc:"(BMS/onduleur)",source:"RappelConso",titre:"Arrêts charge CCS + onduleur",details:"MAJ BMS SAIC.\nHS : suivi jeunes séries qualité."},
+{marque:"BYD",modele:"Atto 3 / Dolphin / Seal / Seal U DM-i",moteur:"Électrique LFP/PHEV",annee:"2022-2026",dtc:"(ADAS/charge)",source:"Ateliers",titre:"ADAS imprécis + courbes DC erratiques",details:"Seal U DM-i : MAJ gestion hybride."},
 {marque:"JAECOO",modele:"7 / J8",moteur:"1.6 TGDI 147 / 2.0 TGDI 254",annee:"2024-2026",dtc:"P0299",source:"Ateliers",titre:"Turbo TGDI sous-alimenté",details:"Wastegate + admission.\nJ8 : données limitées modèle neuf."},
-{marque:"OMODA",modele:"E5 / 5 / 9",moteur:"Électrique/TGDI",annee:"2023-2026",dtc:"(charge CCS)",source:"Ateliers",titre:"Charge variable + jeunes séries",details:"MAJ BMS Chery."},
-{marque:"XPENG",modele:"G6 / G9 / P7",moteur:"Électrique",annee:"2024-2026",dtc:"—",source:"Ateliers",titre:"Récent — suivi jeune",details:"MAJ constructeur régulières."},
-{marque:"LEAPMOTOR",modele:"T03 / C10",moteur:"Électrique",annee:"2024-2026",dtc:"—",source:"Ateliers",titre:"Récent — suivi jeune",details:"Réseau Stellantis Europe."},
-{marque:"SSANGYONG (KG Mobility)",modele:"Torres / Korando / Musso",moteur:"Essence/Diesel/Pickup",annee:"2019-
+{marque:"OMODA",modele:"E5 / 5 / 9",moteur:"Électrique/TGDI",annee:"2023-2026",dtc:"(charge CCS)",source:"Ateliers",titre:"Charge variable + jeunes séries",details:"MAJ BMS Chery régulières."},
+{marque:"XPENG",modele:"G6 / G9 / P7",moteur:"Électrique 286-570 ch",annee:"2024-2026",dtc:"—",source:"Ateliers",titre:"Modèles récents — suivi jeune",details:"MAJ constructeur OTA régulières."},
+{marque:"LEAPMOTOR",modele:"T03 / C10",moteur:"Électrique 95-215 ch",annee:"2024-2026",dtc:"—",source:"Ateliers",titre:"Modèles récents — suivi jeune",details:"Réseau Stellantis Europe.\nSuivi jeunes séries."},
 {marque:"SSANGYONG (KG Mobility)",modele:"Torres / Korando / Musso",moteur:"Essence/Diesel/Pickup",annee:"2019-2026",dtc:"—",source:"Ateliers",titre:"Qualité assemblage variable",details:"Infiltrations, connectiques fragiles.\nContrôles étanchéité + faisceaux."},
 {marque:"ISUZU",modele:"D-Max",moteur:"1.9/3.0 Diesel",annee:"2018-2026",dtc:"P2463",source:"Ateliers",titre:"FAP usage utilitaire",details:"Colmatages fréquents.\nForçage régénération."},
-{marque:"GENESIS",modele:"GV60 / GV70 / G80 Electrified",moteur:"Électrique E-GMP / Essence",annee:"2022-2026",dtc:"(E-GMP)",source:"Safety Gate/Ateliers",titre:"Plateforme E-GMP Hyundai/Kia",details:"Mêmes campagnes que Ioniq 5/EV6 (ICCU).\nVérifier campagnes constructeur."},
-{marque:"SMART",modele:"#1 / #3 / #5",moteur:"Électrique (Geely SEA)",annee:"2022-2026",dtc:"—",source:"Ateliers",titre:"Jeunes séries électriques — suivi",details:"MAJ logicielles régulières.\nCharge DC variable selon bornes."},
-{marque:"FISKER",modele:"Ocean",moteur:"Électrique 275-550 ch",annee:"2023-2024",dtc:"—",source:"🚨 Safety Gate",titre:"⚠️ Constructeur en faillite — nombreux défauts",details:"Portes bloquées, perte freinage régénératif, alertes intempestives, risques batterie.\n⚠️ Réseau SAV très limité après liquidation.\n✅ Vérifier VIN + conserver traces écrites des rappels."},
-{marque:"POLESTAR",modele:"Polestar 2 / 3 / 4",moteur:"Électrique",annee:"2020-2026",dtc:"—",source:"Safety Gate/Ateliers",titre:"Campagnes logicielles + charge",details:"Limitations charge DC ponctuelles.\nMAJ OTA Android Automotive."},
-{marque:"NISSAN (VUL)",modele:"Townstar / Primastar / Interstar",moteur:"Diesel/Électrique",annee:"2021-2026",dtc:"—",source:"Ateliers",titre:"Utilitaires jeunes séries",details:"Suivi MAJ + FAP urbain."},
-{marque:"TOYOTA (VUL)",modele:"Proace / Proace City",moteur:"BlueHDi/Hybride",annee:"2018-2026",dtc:"—",source:"Ateliers",titre:"Base PSA/Stellantis — mêmes pannes",details:"Courroie humide PureTech sur City.\nSCR AdBlue."},
+{marque:"GENESIS",modele:"GV60 / GV70 / G80 Electrified",moteur:"Électrique E-GMP/Essence",annee:"2022-2026",dtc:"(E-GMP)",source:"Safety Gate/Ateliers",titre:"Plateforme E-GMP Hyundai/Kia",details:"Mêmes campagnes que Ioniq 5/EV6 (ICCU)."},
+{marque:"SMART",modele:"#1 / #3 / #5",moteur:"Électrique (Geely SEA)",annee:"2022-2026",dtc:"—",source:"Ateliers",titre:"Jeunes séries électriques",details:"MAJ logicielles régulières.\nCharge DC variable selon bornes."},
+{marque:"FISKER",modele:"Ocean",moteur:"Électrique 275-550 ch",annee:"2023-2024",dtc:"—",source:"🚨 Safety Gate",titre:"⚠️ Constructeur en faillite — nombreux défauts",details:"Portes bloquées, perte régénératif, risques batterie.\nRéseau SAV très limité après liquidation."},
+{marque:"POLESTAR",modele:"Polestar 2 / 3 / 4",moteur:"Électrique 272-544 ch",annee:"2020-2026",dtc:"—",source:"Safety Gate/Ateliers",titre:"Campagnes logicielles + charge",details:"Limitations charge DC ponctuelles.\nMAJ OTA Android Automotive."},
+{marque:"TOYOTA (VUL)",modele:"Proace / Proace City",moteur:"BlueHDi/Hybride",annee:"2018-2026",dtc:"—",source:"Ateliers",titre:"Base Stellantis — mêmes pannes",details:"Courroie humide PureTech sur Proace City.\nSCR AdBlue."},
+{marque:"NISSAN (VUL)",modele:"Townstar / Primastar / Interstar",moteur:"Diesel/Électrique",annee:"2021-2026",dtc:"—",source:"Ateliers",titre:"Utilitaires jeunes séries",details:"Suivi MAJ + FAP urbain."}
 
 ];
 // ============================================================
 // ⚠️ RAPPEL : vérification VIN obligatoire sur ovs.economie.gouv.fr
-// Base v3 — enrichissement continu conseillé
+// Base v3 — ~100 fiches — enrichissement continu
 // ============================================================
-
