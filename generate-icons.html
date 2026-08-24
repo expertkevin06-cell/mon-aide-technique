@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Générateur d'icônes AT Kevin</title>
+</head>
+<body style="background:#0a0e17;color:#eee;font-family:Arial;text-align:center;padding:30px;">
+<h1>🖼️ Générateur d'icônes</h1>
+<p>Cliquez sur les 2 boutons pour télécharger les icônes :</p>
+
+<canvas id="c192" width="192" height="192"></canvas>
+<canvas id="c512" width="512" height="512" style="display:none;"></canvas>
+
+<br><br>
+<button onclick="dl(192)" style="padding:14px 24px;font-size:16px;background:#dc1e32;color:#fff;border:none;border-radius:10px;cursor:pointer;">⬇️ Télécharger icon-192.png</button>
+<button onclick="dl(512)" style="padding:14px 24px;font-size:16px;background:#1a73e8;color:#fff;border:none;border-radius:10px;cursor:pointer;">⬇️ Télécharger icon-512.png</button>
+
+<script>
+function draw(size) {
+  const c = document.getElementById('c' + size);
+  const ctx = c.getContext('2d');
+  // Fond dégradé rouge/bleu
+  const g = ctx.createLinearGradient(0, 0, size, size);
+  g.addColorStop(0, '#dc1e32');
+  g.addColorStop(1, '#1a73e8');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, size, size);
+  // Clé à molette 🔧
+  ctx.font = (size * 0.55) + 'px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🔧', size / 2, size * 0.45);
+  // Texte "AT"
+  ctx.font = 'bold ' + (size * 0.28) + 'px Arial';
+  ctx.fillStyle = '#fff';
+  ctx.fillText('AT', size / 2, size * 0.82);
+}
+function dl(size) {
+  draw(size);
+  document.getElementById('c' + size).toBlob(function(blob) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'icon-' + size + '.png';
+    a.click();
+  });
+}
+</script>
+</body>
+</html>
