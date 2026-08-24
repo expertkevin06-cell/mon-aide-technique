@@ -57,3 +57,21 @@ searchInput.addEventListener('input',()=>render(currentResults()));
 selMarque.innerHTML='<option value="">Toutes les marques</option>'+unique(getData().map(d=>d.marque)).map(m=>'<option>'+m+'</option>').join('');
 fillModeles();
 render(getData());
+
+// ===== RECHERCHE PAR VIN → OVS officiel =====
+const vinInput=document.getElementById('vin-input');
+const btnVin=document.getElementById('btn-vin');
+
+function checkVin(){
+  const vin=vinInput.value.trim().toUpperCase();
+  if(vin.length<17){
+    alert('⚠️ Le VIN doit contenir 17 caractères.\nIl se trouve sur la carte grise (champ E) ou en bas du pare-brise.');
+    return;
+  }
+  window.open('https://ovs.economie.gouv.fr/','_blank');
+}
+btnVin.addEventListener('click',checkVin);
+vinInput.addEventListener('keydown',e=>{if(e.key==='Enter')checkVin();});
+vinInput.addEventListener('input',()=>{
+  vinInput.value=vinInput.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g,'');
+});
