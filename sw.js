@@ -1,4 +1,4 @@
-const CACHE_NAME = 'at-kevin-v5';
+const CACHE_NAME = 'at-kevin-v6';
 
 const FILES = [
   '/',
