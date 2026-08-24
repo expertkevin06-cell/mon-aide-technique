@@ -32,6 +32,9 @@ jobs:
       - name: Construire la base de rappels
         run: python build_database.py
 
+      - name: Valider le JSON généré (Node)
+        run: node -e "JSON.parse(require('fs').readFileSync('data/recalls.json','utf8')); console.log('✅ JSON valide')"
+
       - name: Commit et push si changement
         run: |
           git config user.name "github-actions"
