@@ -1,161 +1,64 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#dc1e32">
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="style.css">
-  <title>Analyse Technique Kevin</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#dc1e32">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+<title>Analyse Technique Kevin</title>
 </head>
 <body>
 
-<!-- ===== VÉHICULE EN FOND PLEIN ÉCRAN (intégré) ===== -->
-<div class="bg-car" aria-hidden="true">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
-  <defs>
-    <linearGradient id="ciel" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0a0e17"/>
-      <stop offset="60%" stop-color="#141024"/>
-      <stop offset="100%" stop-color="#0a0e17"/>
-    </linearGradient>
-    <radialGradient id="glowRouge" cx="0.15" cy="0.25" r="0.5">
-      <stop offset="0%" stop-color="#dc1e32" stop-opacity="0.5"/>
-      <stop offset="100%" stop-color="#dc1e32" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="glowBleu" cx="0.85" cy="0.75" r="0.55">
-      <stop offset="0%" stop-color="#1a73e8" stop-opacity="0.55"/>
-      <stop offset="100%" stop-color="#1a73e8" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="carrosserie" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ff3b5c"/>
-      <stop offset="45%" stop-color="#dc1e32"/>
-      <stop offset="100%" stop-color="#7a1024"/>
-    </linearGradient>
-    <linearGradient id="vitre" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#4da3ff" stop-opacity="0.85"/>
-      <stop offset="100%" stop-color="#1a3a6b" stop-opacity="0.9"/>
-    </linearGradient>
-    <linearGradient id="sol" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#1a73e8" stop-opacity="0.35"/>
-      <stop offset="100%" stop-color="#1a73e8" stop-opacity="0"/>
-    </linearGradient>
-  </defs>
-
-  <rect width="1600" height="900" fill="url(#ciel)"/>
-  <rect width="1600" height="900" fill="url(#glowRouge)"/>
-  <rect width="1600" height="900" fill="url(#glowBleu)"/>
-
-  <g stroke-linecap="round" opacity="0.5">
-    <line x1="80" y1="200" x2="420" y2="200" stroke="#ff3b5c" stroke-width="4" opacity="0.35"/>
-    <line x1="1200" y1="150" x2="1520" y2="150" stroke="#4da3ff" stroke-width="4" opacity="0.35"/>
-    <line x1="100" y1="700" x2="380" y2="700" stroke="#4da3ff" stroke-width="3" opacity="0.25"/>
-    <line x1="1250" y1="720" x2="1540" y2="720" stroke="#ff3b5c" stroke-width="3" opacity="0.25"/>
-  </g>
-
-  <ellipse cx="800" cy="790" rx="560" ry="70" fill="url(#sol)"/>
-
-  <path d="M 240 640 C 250 600, 290 585, 360 578 C 430 520, 520 480, 650 468 C 780 458, 950 462, 1080 500 C 1160 512, 1230 540, 1280 578 C 1360 585, 1400 605, 1408 640 C 1412 668, 1395 682, 1350 684 L 1290 684 A 95 95 0 0 0 1105 684 L 610 684 A 95 95 0 0 0 425 684 L 300 684 C 255 682, 235 665, 240 640 Z"
-        fill="url(#carrosserie)" stroke="#ff6b81" stroke-width="4"/>
-
-  <path d="M 400 570 C 470 522, 550 495, 660 488 L 680 565 Z" fill="url(#vitre)"/>
-  <path d="M 705 486 C 850 478, 990 490, 1070 512 L 1040 565 L 710 565 Z" fill="url(#vitre)"/>
-
-  <path d="M 1330 596 L 1395 606 C 1402 618, 1398 628, 1382 630 L 1328 620 Z" fill="#fff" opacity="0.92"/>
-  <circle cx="1360" cy="612" r="14" fill="#fff"/>
-
-  <path d="M 250 600 L 315 592 L 318 618 L 254 626 Z" fill="#ff1a3c"/>
-  <rect x="256" y="598" width="56" height="8" rx="4" fill="#ffb3bd" opacity="0.8"/>
-  <line x1="330" y1="572" x2="1300" y2="556" stroke="#ffd9de" stroke-width="3" opacity="0.45"/>
-  <path d="M 320 660 L 1340 652 L 1330 676 L 340 678 Z" fill="#0a0e17" opacity="0.55"/>
-
-  <g>
-    <circle cx="515" cy="684" r="88" fill="#0d1018"/>
-    <circle cx="515" cy="684" r="62" fill="none" stroke="#3a4152" stroke-width="10"/>
-    <circle cx="515" cy="684" r="26" fill="#1a73e8"/>
-    <g stroke="#8b93a7" stroke-width="8" stroke-linecap="round">
-      <line x1="515" y1="634" x2="515" y2="660"/><line x1="515" y1="708" x2="515" y2="734"/>
-      <line x1="465" y1="684" x2="491" y2="684"/><line x1="539" y1="684" x2="565" y2="684"/>
-      <line x1="480" y1="649" x2="498" y2="667"/><line x1="532" y1="701" x2="550" y2="719"/>
-      <line x1="480" y1="719" x2="498" y2="701"/><line x1="532" y1="667" x2="550" y2="649"/>
-    </g>
-  </g>
-  <g>
-    <circle cx="1198" cy="684" r="88" fill="#0d1018"/>
-    <circle cx="1198" cy="684" r="62" fill="none" stroke="#3a4152" stroke-width="10"/>
-    <circle cx="1198" cy="684" r="26" fill="#dc1e32"/>
-    <g stroke="#8b93a7" stroke-width="8" stroke-linecap="round">
-      <line x1="1198" y1="634" x2="1198" y2="660"/><line x1="1198" y1="708" x2="1198" y2="734"/>
-      <line x1="1148" y1="684" x2="1174" y2="684"/><line x1="1222" y1="684" x2="1248" y2="684"/>
-      <line x1="1163" y1="649" x2="1181" y2="667"/><line x1="1215" y1="701" x2="1233" y2="719"/>
-      <line x1="1163" y1="719" x2="1181" y2="701"/><line x1="1215" y1="667" x2="1233" y2="649"/>
-    </g>
-  </g>
-
-  <text x="800" y="840" font-family="Arial" font-size="64" font-weight="bold"
-        text-anchor="middle" fill="#ffffff" letter-spacing="6">AT KEVIN</text>
-</svg>
-</div>
-
-<header>
-  <h1>🔧 Analyse Technique</h1>
-  <button id="btn-admin">🔐 Admin</button>
+<header class="header">
+  <div class="header-top">
+    <h1>🔧 Analyse Technique Kevin</h1>
+    <button id="btn-admin" class="btn-icon" title="Admin">🔐</button>
+  </div>
+  <input type="search" id="search" placeholder="Rechercher un rappel, une marque...">
 </header>
 
-<div class="search-zone">
-  <input type="text" id="search-input" placeholder="Marque, modèle, symptôme, code défaut...">
-  <div class="filters">
-    <select id="filter-brand"><option value="">Toutes marques</option></select>
-    <select id="filter-energy">
-      <option value="">Tout carburant</option>
-      <option>Essence</option><option>Diesel</option><option>Électrique</option>
-      <option>Hybride</option><option>Flexfuel E85</option>
-    </select>
-  </div>
-  <button class="primary" id="btn-search">🔍 Rechercher</button>
-  <button class="secondary" id="btn-ai">🤖 Demander à l'IA</button>
+<main id="results"></main>
+
+<div class="empty-state" id="empty-state">
+  <p>🔎 Tapez un mot-clé : marque, modèle, code moteur...</p>
 </div>
 
-<div class="count-bar" id="count-bar">Chargement de la base...</div>
+<!-- ===== MODALE ADMIN ===== -->
+<div class="modal-overlay" id="admin-modal">
+  <div class="modal-box">
+    <button class="modal-close" id="admin-close">✖</button>
 
-<div class="results" id="results"></div>
-
-<div class="ai-zone" id="ai-zone" style="display:none;">
-  <div class="ai-response" id="ai-response"></div>
-</div>
-
-<!-- Modal Admin -->
-<div class="modal" id="admin-modal">
-  <div class="modal-content">
-    <h2>🔐 Mode Administrateur</h2>
-    <input type="password" id="admin-pass" placeholder="Mot de passe">
-    <button class="primary" id="admin-login">Valider</button>
-    <div id="admin-tools" style="display:none; margin-top:14px;">
-      <button class="primary" id="btn-share">📤 Partager l'app</button>
-      <button class="primary" id="btn-pdf" style="margin-top:8px;">🖨️ Imprimer / PDF</button>
-      <button class="secondary" id="btn-icons" style="margin-top:8px;">🖼️ Générer les icônes</button>
-      <input type="file" id="import-json" accept=".json" style="margin-top:12px; color:#eee;">
+    <!-- Connexion -->
+    <div id="admin-login-view">
+      <h2>🔐 Accès Admin</h2>
+      <p>Mot de passe requis :</p>
+      <input type="password" id="admin-pass" placeholder="Mot de passe" autocomplete="off">
+      <button id="admin-login" class="btn-primary">Valider</button>
     </div>
-    <button class="secondary" id="admin-close" style="margin-top:12px;">Fermer</button>
+
+    <!-- Outils admin -->
+    <div id="admin-tools" style="display:none;">
+      <h2>🛠️ Outils Admin</h2>
+      <button id="btn-share" class="btn-tool">📤 Partager l'application</button>
+      <button id="btn-pdf" class="btn-tool">🖨️ Exporter en PDF / Imprimer</button>
+      <hr>
+      <label class="file-label">📥 Importer données (JSON)
+        <input type="file" id="import-json" accept=".json">
+      </label>
+      <button id="btn-export" class="btn-tool">📤 Exporter données (JSON)</button>
+    </div>
   </div>
 </div>
 
-<nav class="bottom-nav">
-  <button class="active" data-tab="search">🔍 Recherche</button>
-  <button data-tab="ai">🤖 IA</button>
-  <button data-tab="info">ℹ️ Infos</button>
-</nav>
-
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(console.error);
-}
-</script>
 <script src="js/db.js"></script>
 <script src="js/app.js"></script>
 <script src="js/admin.js"></script>
-<script src="js/ai.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
 </body>
 </html>
