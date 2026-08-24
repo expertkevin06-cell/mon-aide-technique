@@ -6,10 +6,9 @@ const selModele=document.getElementById('filter-modele');
 const selMoteur=document.getElementById('filter-moteur');
 const btnReset=document.getElementById('btn-reset');
 
-function getData(){
-  const c=localStorage.getItem('at-custom-data');
-  return c?JSON.parse(c):DB;
-}
+const isAdmin=()=>sessionStorage.getItem('at-admin-session')==='ok';
+const getCustom=()=>JSON.parse(localStorage.getItem('at-custom-fiches')||'[]');
+const getData=()=>DB.concat(getCustom());
 const unique=a=>[...new Set(a)].sort();
 
 function fillModeles(){
@@ -33,19 +32,33 @@ function currentResults(){
   if(selModele.value)list=list.filter(d=>d.modele===selModele.value);
   if(selMoteur.value)list=list.filter(d=>d.moteur===selMoteur.value);
   const q=searchInput.value.toLowerCase().trim();
-  if(q)list=list.filter(d=>(d.marque+' '+d.modele+' '+d.moteur+' '+d.annee+' '+d.titre+' '+d.details).toLowerCase().includes(q));
+  if(q)list=list.filter(d=>(d.marque+' '+d.modele+' '+d.moteur+' '+d.annee+' '+(d.dtc||'')+' '+d.titre+' '+d.details+' '+((d.themes||[]).join(' '))).toLowerCase().includes(q));
   return list;
 }
+
 function render(list){
   resultsDiv.innerHTML='';
   emptyState.style.display=list.length?'none':'block';
   list.forEach(i=>{
     const c=document.createElement('div');c.className='card';
-    c.innerHTML='<div class="meta">'+i.marque+' • '+i.modele+' • '+i.moteur+' ('+i.annee+')</div><h3>'+i.titre+'</h3><p>'+i.details+'</p>';
+    let del='';
+    if(isAdmin()&&i.custom){
+      const idx=getCustom().findIndex(f=>f.titre===i.titre&&f.marque===i.marque);
+      del='<button class="del-btn" onclick="deleteCustomFiche('+idx+')">🗑️</button>';
+    }
+    c.innerHTML=
+      del+
+      ((i.dtc&&i.dtc!=='—')?'<span class="dtc">🔧 DTC '+i.dtc+'</span> ':'')+
+      '<div class="meta">'+i.marque+' • '+i.modele+' • '+i.moteur+' ('+i.annee+')'+(i.custom?'<span class="custom-tag">PERSO</span>':'')+'</div>'+
+      '<h3>'+i.titre+'</h3>'+
+      ((i.themes&&i.themes.length)?'<div class="themes">'+i.themes.map(t=>'<span>'+t+'</span>').join('')+'</div>':'')+
+      '<p>'+i.details+'</p>'+
+      (i.pdf?'<a class="card-pdf" href="'+i.pdf+'" download="'+(i.pdfName||'fiche.pdf')+'" target="_blank">📄 Ouvrir le PDF</a>':'');
     resultsDiv.appendChild(c);
   });
 }
 function refresh(){fillModeles();render(currentResults());}
+window.refreshApp=refresh;
 
 selMarque.addEventListener('change',()=>{fillModeles();render(currentResults());});
 selModele.addEventListener('change',()=>{fillMoteurs();render(currentResults());});
@@ -53,7 +66,7 @@ selMoteur.addEventListener('change',()=>render(currentResults()));
 btnReset.addEventListener('click',()=>{selMarque.value='';searchInput.value='';refresh();});
 searchInput.addEventListener('input',()=>render(currentResults()));
 
-// Init filtres marques
+// Init marques
 selMarque.innerHTML='<option value="">Toutes les marques</option>'+unique(getData().map(d=>d.marque)).map(m=>'<option>'+m+'</option>').join('');
 fillModeles();
 render(getData());
@@ -61,7 +74,6 @@ render(getData());
 // ===== RECHERCHE PAR VIN → OVS officiel =====
 const vinInput=document.getElementById('vin-input');
 const btnVin=document.getElementById('btn-vin');
-
 function checkVin(){
   const vin=vinInput.value.trim().toUpperCase();
   if(vin.length<17){
