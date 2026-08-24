@@ -1,36 +1,32 @@
-/* ===== RESET & FOND ROUGE/BLEU MODERNE ===== */
+/* ===== RESET & FOND VÉHICULE ROUGE/BLEU ===== */
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
 
 body {
   min-height: 100vh;
   color: #eee;
   background:
-    radial-gradient(circle at 15% 20%, rgba(220, 30, 50, 0.55) 0%, transparent 45%),
-    radial-gradient(circle at 85% 80%, rgba(26, 115, 232, 0.6) 0%, transparent 50%),
-    radial-gradient(circle at 70% 10%, rgba(120, 0, 180, 0.35) 0%, transparent 40%),
+    linear-gradient(rgba(10, 14, 23, 0.72), rgba(10, 14, 23, 0.88)),
+    url('../icons/car.svg') center / cover no-repeat fixed,
     linear-gradient(160deg, #0a0e17 0%, #14101f 50%, #0a0e17 100%);
-  background-attachment: fixed;
 }
 
-/* Lignes de vitesse décoratives */
+/* Voiture visible en haut, assombrie derrière le contenu */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background:
-    linear-gradient(105deg, transparent 49.8%, rgba(255,255,255,.04) 50%, transparent 50.2%),
-    linear-gradient(75deg, transparent 69.8%, rgba(220,30,50,.08) 70%, transparent 70.2%),
-    linear-gradient(95deg, transparent 29.8%, rgba(26,115,232,.08) 30%, transparent 30.2%);
   z-index: 0;
+  background:
+    radial-gradient(circle at 15% 12%, rgba(220, 30, 50, 0.18) 0%, transparent 40%),
+    radial-gradient(circle at 85% 85%, rgba(26, 115, 232, 0.18) 0%, transparent 45%);
 }
 
-/* Animation douce des couleurs */
 @keyframes glow {
   0%, 100% { filter: hue-rotate(0deg); }
-  50% { filter: hue-rotate(25deg); }
+  50% { filter: hue-rotate(20deg); }
 }
-body { animation: glow 12s ease-in-out infinite; }
+body { animation: glow 14s ease-in-out infinite; }
 
 /* ===== HEADER ===== */
 header {
@@ -42,7 +38,7 @@ header {
   justify-content: space-between;
   gap: 10px;
   padding: 14px 16px;
-  background: rgba(10, 14, 23, 0.85);
+  background: rgba(10, 14, 23, 0.82);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(220, 30, 50, 0.4);
 }
@@ -87,11 +83,7 @@ header h1 {
   border-color: #ff3b5c;
   box-shadow: 0 0 12px rgba(220, 30, 50, 0.35);
 }
-.filters {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
+.filters { display: flex; gap: 8px; flex-wrap: wrap; }
 .filters select { flex: 1; min-width: 130px; }
 
 /* ===== BOUTONS ===== */
@@ -119,7 +111,7 @@ button.secondary {
   cursor: pointer;
 }
 
-/* ===== RÉSULTATS / FICHES ===== */
+/* ===== RÉSULTATS ===== */
 .results {
   position: relative;
   z-index: 1;
@@ -136,19 +128,10 @@ button.secondary {
   padding: 14px;
   backdrop-filter: blur(6px);
 }
-.fiche h3 {
-  font-size: 1rem;
-  margin-bottom: 6px;
-  color: #fff;
-}
+.fiche h3 { font-size: 1rem; margin-bottom: 6px; color: #fff; }
 .fiche h3 span { color: #ff3b5c; }
 .fiche p { font-size: .88rem; line-height: 1.45; color: #c9d1e0; }
-.badges {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
+.badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
 .badge {
   font-size: .72rem;
   padding: 4px 10px;
@@ -163,12 +146,8 @@ button.secondary {
   border-color: rgba(220, 30, 50, 0.4);
 }
 
-/* ===== ZONE IA ===== */
-.ai-zone {
-  position: relative;
-  z-index: 1;
-  padding: 0 16px 20px;
-}
+/* ===== IA ===== */
+.ai-zone { position: relative; z-index: 1; padding: 0 16px 20px; }
 .ai-response {
   margin-top: 10px;
   background: rgba(18, 22, 36, 0.92);
@@ -180,7 +159,7 @@ button.secondary {
   white-space: pre-wrap;
 }
 
-/* ===== ADMIN / MODALES ===== */
+/* ===== ADMIN ===== */
 .modal {
   position: fixed;
   inset: 0;
@@ -202,11 +181,7 @@ button.secondary {
   border-radius: 16px;
   padding: 20px;
 }
-.modal-content h2 {
-  font-size: 1.05rem;
-  margin-bottom: 14px;
-  color: #ff3b5c;
-}
+.modal-content h2 { font-size: 1.05rem; margin-bottom: 14px; color: #ff3b5c; }
 .modal-content input, .modal-content textarea {
   width: 100%;
   padding: 11px;
@@ -218,37 +193,11 @@ button.secondary {
   font-size: .95rem;
 }
 
-/* ===== LOADER ===== */
-.loader {
-  text-align: center;
-  padding: 30px;
-  color: #7db9ff;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.spinner {
-  width: 34px; height: 34px;
-  margin: 0 auto 10px;
-  border: 3px solid rgba(77, 163, 255, 0.25);
-  border-top-color: #ff3b5c;
-  border-radius: 50%;
-  animation: spin .8s linear infinite;
-}
-
-/* ===== COMPTEUR ===== */
-.count-bar {
-  position: relative;
-  z-index: 1;
-  padding: 0 16px 8px;
-  font-size: .8rem;
-  color: #8b93a7;
-}
-
-/* ===== NAV BAR BAS ===== */
+/* ===== COMPTEUR & NAV ===== */
+.count-bar { position: relative; z-index: 1; padding: 0 16px 8px; font-size: .8rem; color: #aab2c5; }
 nav.bottom-nav {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 0; left: 0; right: 0;
   z-index: 20;
   display: flex;
   background: rgba(10, 14, 23, 0.95);
@@ -264,7 +213,4 @@ nav.bottom-nav button {
   font-size: .78rem;
   cursor: pointer;
 }
-nav.bottom-nav button.active {
-  color: #ff3b5c;
-  border-top: 2px solid #ff3b5c;
-}
+nav.bottom-nav button.active { color: #ff3b5c; border-top: 2px solid #ff3b5c; }
