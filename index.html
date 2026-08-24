@@ -22,7 +22,7 @@
     <select id="filter-moteur" disabled><option value="">Toutes les motorisations</option></select>
     <button id="btn-reset" class="btn-reset">✖ Réinitialiser</button>
   </div>
-  <input type="search" id="search" placeholder="🔎 Rechercher un mot-clé...">
+  <input type="search" id="search" placeholder="🔎 Rechercher un mot-clé ou code DTC...">
 
   <!-- ===== RECHERCHE PAR VIN ===== -->
   <div class="vin-search">
@@ -36,23 +36,96 @@
   <p>📋 Sélectionnez des filtres ou tapez un mot-clé</p>
 </div>
 
+<!-- ===== MODAL ADMIN ===== -->
 <div class="modal-overlay" id="admin-modal">
   <div class="modal-box">
     <button class="modal-close" id="admin-close">✖</button>
+
+    <!-- Vue connexion -->
     <div id="admin-login-view">
       <h2>🔐 Accès Admin</h2>
       <input type="password" id="admin-pass" placeholder="Mot de passe" autocomplete="off">
       <button id="admin-login" class="btn-primary">Valider</button>
     </div>
+
+    <!-- Vue outils -->
     <div id="admin-tools" style="display:none;">
       <h2>🛠️ Outils Admin</h2>
-      <button id="btn-share" class="btn-tool">📤 Partager l'application</button>
-      <button id="btn-pdf" class="btn-tool">🖨️ Exporter en PDF</button>
+
+      <!-- ===== AJOUTER UNE FICHE ===== -->
+      <h3>➕ Nouvelle fiche</h3>
+      <input type="text" id="f-marque" list="liste-marques" placeholder="Marque (ex : PEUGEOT)">
+      <datalist id="liste-marques"></datalist>
+      <input type="text" id="f-modele" list="listes-modeles" placeholder="Modèle (ex : 3008 II)" disabled>
+      <datalist id="listes-modeles"></datalist>
+      <input type="text" id="f-moteur" list="liste-moteurs" placeholder="Motorisation (ex : 1.5 BlueHDi 130)" disabled>
+      <datalist id="liste-moteurs"></datalist>
+      <input type="text" id="f-annee" placeholder="Années (ex : 2020-2026)">
+      <input type="text" id="f-dtc" placeholder="Code DTC (optionnel, ex : P20EE)">
+      <input type="text" id="f-titre" placeholder="Titre du problème">
+
+      <label class="lbl-theme">⚙️ Thème électronique
+        <select id="f-theme-elec">
+          <option value="">— Aucun —</option>
+          <option>Calculateur moteur (ECU)</option>
+          <option>Boîte auto / TCU</option>
+          <option>Airbag / Ceinture</option>
+          <option>ABS / ESP / Freinage</option>
+          <option>ADAS / Caméra / Radar</option>
+          <option>Tablette / Multimédia</option>
+          <option>Tableau de bord</option>
+          <option>Câblage / Connecteurs</option>
+          <option>Capteurs divers</option>
+        </select>
+      </label>
+      <label class="lbl-theme">⚡ Thème électrique
+        <select id="f-theme-electrique">
+          <option value="">— Aucun —</option>
+          <option>Batterie haute tension</option>
+          <option>Charge AC/DC / Borne</option>
+          <option>Onduleur / Moteur électrique</option>
+          <option>DC-DC / Batterie 12V</option>
+          <option>Hybride (HEV/PHEV)</option>
+          <option>Alternateur / Démarreur</option>
+          <option>Faisceau HT / Câblage EV</option>
+        </select>
+      </label>
+      <label class="lbl-theme">🔩 Thème carrosserie/mécanique
+        <select id="f-theme-carrosserie">
+          <option value="">— Aucun —</option>
+          <option>Rouille / Corrosion</option>
+          <option>Suspension / Train roulant</option>
+          <option>Direction</option>
+          <option>Freinage mécanique</option>
+          <option>Moteur thermique</option>
+          <option>Distribution / Courroie</option>
+          <option>Turbo / Admission</option>
+          <option>Refroidissement</option>
+          <option>FAP / EGR / AdBlue</option>
+          <option>Vitres / Fermetures</option>
+          <option>Étanchéité / Infiltrations</option>
+        </select>
+      </label>
+
+      <textarea id="f-details" rows="4" placeholder="Description du problème, cause, solution..."></textarea>
+
+      <!-- PDF -->
+      <label class="file-label">📎 Joindre un PDF (max ~2 Mo)
+        <input type="file" id="f-pdf" accept="application/pdf">
+      </label>
+      <span id="pdf-name" style="font-size:12px;color:#9aa7bd;"></span>
+
+      <button id="btn-add-fiche" class="btn-primary">💾 Enregistrer la fiche</button>
+
       <hr>
-      <label class="file-label">📥 Importer données (JSON)
+      <h3>📤 Export / Import / Partage</h3>
+      <button id="btn-export" class="btn-tool">📤 Exporter mes fiches (JSON)</button>
+      <label class="file-label btn-tool" style="background:#2a3450;">📥 Importer fiches (JSON)
         <input type="file" id="import-json" accept=".json">
       </label>
-      <button id="btn-export" class="btn-tool">📤 Exporter données (JSON)</button>
+      <button id="btn-share-contact" class="btn-tool">📱 Partager par SMS / Mail</button>
+      <button id="btn-pdf" class="btn-tool">🖨️ Exporter en PDF</button>
+      <button id="btn-logout" class="btn-danger">🔒 Déconnexion</button>
     </div>
   </div>
 </div>
