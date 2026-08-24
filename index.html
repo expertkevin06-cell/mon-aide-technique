@@ -1,140 +1,48 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#dc1e32">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="style.css">
-<title>Analyse Technique Kevin</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1a1a2e">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png">
+  <title>Analyse Technique Kevin</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<header class="header">
-  <div class="header-top">
+  <header>
     <h1>🔧 Analyse Technique Kevin</h1>
-    <button id="btn-admin" class="btn-icon">🔐</button>
-  </div>
-  <div class="filters">
-    <select id="filter-marque"><option value="">Toutes les marques</option></select>
-    <select id="filter-modele" disabled><option value="">Tous les modèles</option></select>
-    <select id="filter-moteur" disabled><option value="">Toutes les motorisations</option></select>
-    <button id="btn-reset" class="btn-reset">✖ Réinitialiser</button>
-  </div>
-  <input type="search" id="search" placeholder="🔎 Rechercher un mot-clé ou code DTC...">
+    <p>Rappels & pannes — 2018 à 2026</p>
+  </header>
 
-  <!-- ===== RECHERCHE PAR VIN ===== -->
-  <div class="vin-search">
-    <input type="text" id="vin-input" maxlength="17" placeholder="🚗 Entrez le VIN (17 caractères)">
-    <button id="btn-vin" class="btn-vin">🔍 Vérifier</button>
-  </div>
-</header>
+  <main>
+    <section class="filtres">
+      <label for="marque">Marque :</label>
+      <select id="marque"><option value="">Toutes les marques</option></select>
 
-<main id="results"></main>
-<div class="empty-state" id="empty-state">
-  <p>📋 Sélectionnez des filtres ou tapez un mot-clé</p>
-</div>
+      <label for="modele">Modèle :</label>
+      <select id="modele"><option value="">Tous les modèles</option></select>
 
-<!-- ===== MODAL ADMIN ===== -->
-<div class="modal-overlay" id="admin-modal">
-  <div class="modal-box">
-    <button class="modal-close" id="admin-close">✖</button>
+      <label for="moteur">Motorisation :</label>
+      <select id="moteur"><option value="">Toutes motorisations</option></select>
 
-    <!-- Vue connexion -->
-    <div id="admin-login-view">
-      <h2>🔐 Accès Admin</h2>
-      <input type="password" id="admin-pass" placeholder="Mot de passe" autocomplete="off">
-      <button id="admin-login" class="btn-primary">Valider</button>
-    </div>
+      <input type="text" id="recherche" placeholder="🔎 Mot-clé, code DTC...">
+      <button id="btn-reset">Réinitialiser</button>
+    </section>
 
-    <!-- Vue outils -->
-    <div id="admin-tools" style="display:none;">
-      <h2>🛠️ Outils Admin</h2>
+    <section id="resultats"></section>
+  </main>
 
-      <!-- ===== AJOUTER UNE FICHE ===== -->
-      <h3>➕ Nouvelle fiche</h3>
-      <input type="text" id="f-marque" list="liste-marques" placeholder="Marque (ex : PEUGEOT)">
-      <datalist id="liste-marques"></datalist>
-      <input type="text" id="f-modele" list="listes-modeles" placeholder="Modèle (ex : 3008 II)" disabled>
-      <datalist id="listes-modeles"></datalist>
-      <input type="text" id="f-moteur" list="liste-moteurs" placeholder="Motorisation (ex : 1.5 BlueHDi 130)" disabled>
-      <datalist id="liste-moteurs"></datalist>
-      <input type="text" id="f-annee" placeholder="Années (ex : 2020-2026)">
-      <input type="text" id="f-dtc" placeholder="Code DTC (optionnel, ex : P20EE)">
-      <input type="text" id="f-titre" placeholder="Titre du problème">
+  <footer>
+    <p>⚠️ Vérification VIN officielle : ovs.economie.gouv.fr</p>
+  </footer>
 
-      <label class="lbl-theme">⚙️ Thème électronique
-        <select id="f-theme-elec">
-          <option value="">— Aucun —</option>
-          <option>Calculateur moteur (ECU)</option>
-          <option>Boîte auto / TCU</option>
-          <option>Airbag / Ceinture</option>
-          <option>ABS / ESP / Freinage</option>
-          <option>ADAS / Caméra / Radar</option>
-          <option>Tablette / Multimédia</option>
-          <option>Tableau de bord</option>
-          <option>Câblage / Connecteurs</option>
-          <option>Capteurs divers</option>
-        </select>
-      </label>
-      <label class="lbl-theme">⚡ Thème électrique
-        <select id="f-theme-electrique">
-          <option value="">— Aucun —</option>
-          <option>Batterie haute tension</option>
-          <option>Charge AC/DC / Borne</option>
-          <option>Onduleur / Moteur électrique</option>
-          <option>DC-DC / Batterie 12V</option>
-          <option>Hybride (HEV/PHEV)</option>
-          <option>Alternateur / Démarreur</option>
-          <option>Faisceau HT / Câblage EV</option>
-        </select>
-      </label>
-      <label class="lbl-theme">🔩 Thème carrosserie/mécanique
-        <select id="f-theme-carrosserie">
-          <option value="">— Aucun —</option>
-          <option>Rouille / Corrosion</option>
-          <option>Suspension / Train roulant</option>
-          <option>Direction</option>
-          <option>Freinage mécanique</option>
-          <option>Moteur thermique</option>
-          <option>Distribution / Courroie</option>
-          <option>Turbo / Admission</option>
-          <option>Refroidissement</option>
-          <option>FAP / EGR / AdBlue</option>
-          <option>Vitres / Fermetures</option>
-          <option>Étanchéité / Infiltrations</option>
-        </select>
-      </label>
-
-      <textarea id="f-details" rows="4" placeholder="Description du problème, cause, solution..."></textarea>
-
-      <!-- PDF -->
-      <label class="file-label">📎 Joindre un PDF (max ~2 Mo)
-        <input type="file" id="f-pdf" accept="application/pdf">
-      </label>
-      <span id="pdf-name" style="font-size:12px;color:#9aa7bd;"></span>
-
-      <button id="btn-add-fiche" class="btn-primary">💾 Enregistrer la fiche</button>
-
-      <hr>
-      <h3>📤 Export / Import / Partage</h3>
-      <button id="btn-export" class="btn-tool">📤 Exporter mes fiches (JSON)</button>
-      <label class="file-label btn-tool" style="background:#2a3450;">📥 Importer fiches (JSON)
-        <input type="file" id="import-json" accept=".json">
-      </label>
-      <button id="btn-share-contact" class="btn-tool">📱 Partager par SMS / Mail</button>
-      <button id="btn-pdf" class="btn-tool">🖨️ Exporter en PDF</button>
-      <button id="btn-logout" class="btn-danger">🔒 Déconnexion</button>
-    </div>
-  </div>
-</div>
-
-<script src="js/db.js"></script>
-<script src="js/app.js"></script>
-<script src="js/admin.js"></script>
-<script>
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-</script>
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
 </body>
 </html>
