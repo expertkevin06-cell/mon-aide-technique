@@ -1,32 +1,31 @@
-/* ===== RESET & FOND VÉHICULE ROUGE/BLEU ===== */
+/* ===== RESET & FOND ===== */
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
 
 body {
   min-height: 100vh;
   color: #eee;
   background:
-    linear-gradient(rgba(10, 14, 23, 0.72), rgba(10, 14, 23, 0.88)),
-    url('../icons/car.svg') center / cover no-repeat fixed,
+    radial-gradient(circle at 15% 20%, rgba(220, 30, 50, 0.35) 0%, transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(26, 115, 232, 0.4) 0%, transparent 50%),
     linear-gradient(160deg, #0a0e17 0%, #14101f 50%, #0a0e17 100%);
+  background-attachment: fixed;
 }
 
-/* Voiture visible en haut, assombrie derrière le contenu */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(circle at 15% 12%, rgba(220, 30, 50, 0.18) 0%, transparent 40%),
-    radial-gradient(circle at 85% 85%, rgba(26, 115, 232, 0.18) 0%, transparent 45%);
+/* ===== BANNIÈRE VÉHICULE ===== */
+.hero {
+  position: relative;
+  z-index: 1;
+  border-bottom: 1px solid rgba(220, 30, 50, 0.4);
+}
+.hero img {
+  width: 100%;
+  display: block;
 }
 
 @keyframes glow {
   0%, 100% { filter: hue-rotate(0deg); }
   50% { filter: hue-rotate(20deg); }
 }
-body { animation: glow 14s ease-in-out infinite; }
 
 /* ===== HEADER ===== */
 header {
@@ -38,7 +37,7 @@ header {
   justify-content: space-between;
   gap: 10px;
   padding: 14px 16px;
-  background: rgba(10, 14, 23, 0.82);
+  background: rgba(10, 14, 23, 0.85);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(220, 30, 50, 0.4);
 }
