@@ -1,30 +1,13 @@
-/* ===== RESET & FOND ===== */
+/* ===== RESET & FOND VÉHICULE PLEIN ÉCRAN ===== */
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
 
 body {
   min-height: 100vh;
   color: #eee;
   background:
-    radial-gradient(circle at 15% 20%, rgba(220, 30, 50, 0.35) 0%, transparent 45%),
-    radial-gradient(circle at 85% 80%, rgba(26, 115, 232, 0.4) 0%, transparent 50%),
+    linear-gradient(rgba(10, 14, 23, 0.55), rgba(10, 14, 23, 0.7)),
+    url('../icons/car.svg') center center / cover no-repeat fixed,
     linear-gradient(160deg, #0a0e17 0%, #14101f 50%, #0a0e17 100%);
-  background-attachment: fixed;
-}
-
-/* ===== BANNIÈRE VÉHICULE ===== */
-.hero {
-  position: relative;
-  z-index: 1;
-  border-bottom: 1px solid rgba(220, 30, 50, 0.4);
-}
-.hero img {
-  width: 100%;
-  display: block;
-}
-
-@keyframes glow {
-  0%, 100% { filter: hue-rotate(0deg); }
-  50% { filter: hue-rotate(20deg); }
 }
 
 /* ===== HEADER ===== */
@@ -37,7 +20,7 @@ header {
   justify-content: space-between;
   gap: 10px;
   padding: 14px 16px;
-  background: rgba(10, 14, 23, 0.85);
+  background: rgba(10, 14, 23, 0.75);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(220, 30, 50, 0.4);
 }
@@ -73,7 +56,7 @@ header h1 {
   padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid rgba(77, 163, 255, 0.35);
-  background: rgba(20, 25, 40, 0.85);
+  background: rgba(20, 25, 40, 0.8);
   color: #eee;
   font-size: 1rem;
   outline: none;
@@ -120,7 +103,7 @@ button.secondary {
   gap: 12px;
 }
 .fiche {
-  background: rgba(18, 22, 36, 0.9);
+  background: rgba(18, 22, 36, 0.85);
   border: 1px solid rgba(77, 163, 255, 0.25);
   border-left: 4px solid #dc1e32;
   border-radius: 14px;
@@ -149,7 +132,7 @@ button.secondary {
 .ai-zone { position: relative; z-index: 1; padding: 0 16px 20px; }
 .ai-response {
   margin-top: 10px;
-  background: rgba(18, 22, 36, 0.92);
+  background: rgba(18, 22, 36, 0.9);
   border: 1px solid rgba(120, 0, 180, 0.4);
   border-radius: 14px;
   padding: 14px;
@@ -199,7 +182,7 @@ nav.bottom-nav {
   bottom: 0; left: 0; right: 0;
   z-index: 20;
   display: flex;
-  background: rgba(10, 14, 23, 0.95);
+  background: rgba(10, 14, 23, 0.92);
   backdrop-filter: blur(10px);
   border-top: 1px solid rgba(220, 30, 50, 0.35);
 }
