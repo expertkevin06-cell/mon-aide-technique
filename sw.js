@@ -1,16 +1,15 @@
-const CACHE_NAME = 'at-kevin-v6';
+const CACHE_NAME = 'at-kevin-v8';
 
 const FILES = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/css/style.css',
+  '/style.css',
   '/js/db.js',
   '/js/app.js',
   '/js/admin.js',
   '/js/ai.js',
   '/icons/icon.svg',
-  '/icons/car.svg',
   '/icons/icon-192.png',
   '/icons/icon-512.png'
 ];
