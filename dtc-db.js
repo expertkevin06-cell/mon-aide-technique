@@ -1,8 +1,13 @@
-/* dtc-db.js v3 — Base DTC massive vérifiée (P20EE corrigé) */
+/* dtc-db.js v4 — Extraction DTC corrigée (P20EE, P202E, codes alphanumériques) */
 (function(){
 'use strict';
+
+/* === REGEX CENTRAL : détecte tous les codes OBD-II (numériques ET hexadécimaux) === */
+/* Formats supportés : P0016, P20EE, P202E, P242F, C0035, B0001, U0155, U1233 */
+const DTC_REGEX = /\b[pcbu][0-9a-f]{4,5}\b/gi;
+
 var D={
-/* --- MOTEUR / GESTION --- */
+/* --- MOTEUR --- */
 'P0001':['Régulateur débit carburant : circuit','Régulateur, câblage','Contrôle circuit + régulateur'],
 'P0002':['Régulateur débit carburant : plage','Régulateur encrassé','Contrôle/remplace régulateur'],
 'P0008':['Calage distribution (banc 1)','Chaîne/courroie détendue','Contrôle calage + kit'],
@@ -11,9 +16,10 @@ var D={
 'P0011':['AAC A (b1) calage avancé','VVT grippé, huile','Contrôle VVT + huile'],
 'P0012':['AAC A (b1) calage retardé','VVT, chaîne','Contrôle VVT + calage'],
 'P0016':['Corrélation vilo/AAC admission','Distribution décalée, capteur, VVT','Contrôle calage, capteurs, phasers'],
-'P0017':['Corrélation vilo/AAC échappement','Idem P0016','Idem P0016'],
+'P0017':['Corrélation vilo/AAC échappement','Distribution décalée','Contrôle calage, tendeurs'],
 'P0087':['Pression rail basse','Pompe HP, filtre, limaille','Contrôle pression, pompe, rinçage'],
 'P0088':['Pression rail haute','Régulateur','Contrôle régulateur'],
+'P00AF':['Actuateur turbo HS','Actuateur carbonisé','Remplace actuateur'],
 'P0100':['MAF circuit','MAF, câblage','Contrôle MAF'],
 'P0101':['MAF plage/perf','MAF encrassé, fuite','Nettoie/remplace MAF'],
 'P0102':['MAF basse','MAF/câblage','Contrôle câblage'],
@@ -39,7 +45,6 @@ var D={
 'P0230':['Pompe carburant circuit','Relais, pompe','Contrôle relais + pompe'],
 'P0234':['Turbo surpression','Wastegate','Contrôle wastegate'],
 'P0299':['Pression turbo basse','Fuite, wastegate, turbo, EGR','Contrôle durites/wastegate/turbo'],
-'P00AF':['Actuateur turbo HS','Actuateur carbonisé','Remplace actuateur'],
 'P0300':['Ratés multiples','Bobines, bougies, injecteurs','Bobines/bougies, compressions'],
 'P0301':['Ratés cyl.1','Bobine/bougie 1','Permuter bobine'],
 'P0302':['Ratés cyl.2','Bobine/bougie 2','Permuter bobine'],
@@ -54,24 +59,6 @@ var D={
 'P0353':['Bobine C défaut','Bobine C','Remplace bobine C'],
 'P0354':['Bobine D défaut','Bobine D','Remplace bobine D'],
 'P0380':['Préchauffage circuit','Boîtier, bougies','Contrôle boîtier + bougies'],
-'P0480':['Ventilateur 1 circuit','Relais, moteur','Contrôle relais + ventilateur'],
-'P0562':['Tension basse','Batterie/alternateur','Test batterie, masses'],
-'P0563':['Tension haute','Régulateur','Contrôle alternateur'],
-'P0571':['Contacteur frein A','Contacteur pédale','Remplace contacteur'],
-'P0601':['ECM erreur mémoire','Calculateur','Diagnostic calculateur'],
-'P0638':['Papillon motorisé plage','Boîtier papillon','Nettoie/remplace boîtier'],
-'P0645':['Relais embrayage clim','Relais','Contrôle relais'],
-'P0685':['Relais principal ECM','Relais','Contrôle relais'],
-'P1336':['Capteur vilo signal','Capteur/câblage','Contrôle capteur'],
-'P1602':['Immobiliseur code','Clé/calculateur','Réapprentissage'],
-'P2101':['Papillon motorisé circuit','Boîtier','Contrôle boîtier'],
-'P2111':['Papillon bloqué ouvert','Boîtier','Nettoie/remplace'],
-'P2112':['Papillon bloqué fermé','Boîtier','Nettoie/remplace'],
-'P2122':['Pédale D basse','Capteur pédale','Contrôle capteur'],
-'P2135':['Corrélation pédale/papillon','Capteurs','Contrôle capteurs'],
-'P2177':['Pauvre hors ralenti','Prise air, injecteurs','Recherche fuite'],
-'P2187':['Riche au ralenti','Injecteurs','Contrôle injecteurs'],
-/* --- DÉPOLLUTION (EGR/FAP/AdBlue/NOx/SCR) --- */
 'P0401':['EGR débit insuffisant','Vanne encrassée','Nettoie/remplace EGR'],
 'P0402':['EGR débit excessif','Vanne bloquée','Nettoie/remplace EGR'],
 'P0403':['EGR circuit','Électrovanne','Contrôle circuit EGR'],
@@ -85,22 +72,18 @@ var D={
 'P0443':['EVAP électrovanne circuit','Électrovanne','Contrôle électrovanne'],
 'P0455':['EVAP grosse fuite','Bouchon, canister','Contrôle bouchon + canister'],
 'P0456':['EVAP très petite fuite','Fuite minime','Test fumée'],
+'P0480':['Ventilateur 1 circuit','Relais, moteur','Contrôle relais + ventilateur'],
+'P0481':['Ventilateur 2 circuit','Relais, moteur','Contrôle ventilateur 2'],
 'P0496':['EVAP purge élevée','Électrovanne ouverte','Remplace électrovanne'],
-'P2002':['FAP efficacité basse','FAP colmaté','Régénération, contrôle FAP'],
-'P20BA':['AdBlue : chauffe injecteur','Injecteur AdBlue, câblage','Contrôle injecteur AdBlue'],
-'P20EE':['Rendement catalyseur SCR insuffisant pour traiter les NOx','Catalyseur SCR dégradé, qualité AdBlue, injecteur AdBlue, capteur NOx','Contrôle qualité AdBlue, injecteur, catalyseur SCR, capteur NOx'],
-'P202E':['AdBlue : injection faible','Injecteur bouché, pompe','Contrôle injecteur + pompe AdBlue'],
-'P203C':['AdBlue : niveau capteur','Capteur niveau','Contrôle capteur niveau'],
-'P204D':['AdBlue : qualité/capteur','AdBlue contaminé, capteur','Contrôle qualité AdBlue + capteur'],
-'P207F':['AdBlue : qualité réservoir','AdBlue contaminé','Vidange/remplissage AdBlue'],
-'P2200':['NOx capteur circuit (b1)','Capteur NOx','Contrôle capteur NOx'],
-'P2201':['NOx capteur plage (b1)','Capteur NOx','Remplace capteur NOx'],
-'P2207':['NOx capteur chauffe (b1)','Capteur NOx','Remplace capteur NOx'],
-'P242F':['FAP restriction suie','FAP colmaté','Régénération/remplacement'],
-'P2459':['FAP régénérations anormales','Parcours courts','Régénération + capteurs'],
-'P2463':['FAP suie excessive','Régénérations incomplètes','Régénération, entretien'],
-'P2563':['Turbo position wastegate','Wastegate','Contrôle wastegate'],
-/* --- BOÎTE / TRANSMISSION --- */
+'P0562':['Tension basse','Batterie/alternateur','Test batterie, masses'],
+'P0563':['Tension haute','Régulateur','Contrôle alternateur'],
+'P0571':['Contacteur frein A','Contacteur pédale','Remplace contacteur'],
+'P0601':['ECM erreur mémoire','Calculateur','Diagnostic calculateur'],
+'P0638':['Papillon motorisé plage','Boîtier papillon','Nettoie/remplace boîtier'],
+'P0645':['Relais embrayage clim','Relais','Contrôle relais'],
+'P0685':['Relais principal ECM','Relais','Contrôle relais'],
+'P0691':['Ventilateur 1 commande basse','Relais/câblage','Contrôle relais'],
+/* --- BOÎTE --- */
 'P0700':['Calculateur boîte défaut','Mécatronique','Diagnostic boîte, MAJ'],
 'P0705':['Gamme boîte A circuit','Capteur/levier','Contrôle capteur gamme'],
 'P0706':['Gamme boîte A plage','Capteur','Contrôle capteur'],
@@ -119,8 +102,38 @@ var D={
 'P0776':['Électrovanne pression B','Mécatronique DSG/EAT','Vidange + mécatro'],
 'P0841':['Capteur pression boîte A','Mécatronique','Diagnostic mécatro'],
 'P0868':['Pression huile boîte basse','Huile/pompe','Vidange + pompe'],
+'P1336':['Capteur vilo signal','Capteur/câblage','Contrôle capteur'],
+'P1602':['Immobiliseur code','Clé/calculateur','Réapprentissage'],
 'P17BF':['Mécatronique DSG (VAG)','Mécatronique DQ200','MAJ + mécatro'],
-/* --- ABS / ESP / FREINAGE --- */
+'P2101':['Papillon motorisé circuit','Boîtier','Contrôle boîtier'],
+'P2111':['Papillon bloqué ouvert','Boîtier','Nettoie/remplace'],
+'P2112':['Papillon bloqué fermé','Boîtier','Nettoie/remplace'],
+'P2122':['Pédale D basse','Capteur pédale','Contrôle capteur'],
+'P2135':['Corrélation pédale/papillon','Capteurs','Contrôle capteurs'],
+'P2177':['Pauvre hors ralenti','Prise air, injecteurs','Recherche fuite'],
+'P2187':['Riche au ralenti','Injecteurs','Contrôle injecteurs'],
+/* --- DÉPOLLUTION (EGR/FAP/AdBlue/NOx/SCR) — CODES CRITIQUES --- */
+'P2002':['FAP efficacité basse','FAP colmaté','Régénération, contrôle FAP'],
+'P202E':['AdBlue : injection faible','Injecteur bouché, pompe, cristallisation','Contrôle injecteur + pompe AdBlue, rinçage circuit'],
+'P203C':['AdBlue : niveau capteur','Capteur niveau, réservoir','Contrôle capteur niveau AdBlue'],
+'P204D':['AdBlue : qualité/capteur','AdBlue contaminé, capteur NOx amont','Contrôle qualité AdBlue + capteur NOx'],
+'P207F':['AdBlue : qualité réservoir','AdBlue contaminé, cristallisation','Vidange/remplissage AdBlue neuf'],
+'P20BA':['AdBlue : chauffe injecteur','Résistance chauffe, injecteur, câblage','Contrôle injecteur AdBlue + résistance chauffe'],
+'P20EE':['Rendement catalyseur SCR insuffisant pour traiter les NOx','Catalyseur SCR dégradé, qualité AdBlue contaminée, injecteur AdBlue bouché/cristallisé, capteur NOx amont/aval défaillant, fuite échappement avant SCR, température SCR insuffisante','Diagnostic complet : 1) Qualité AdBlue (réfractométrie) 2) Test injecteur AdBlue (débit/pulvérisation) 3) Capteurs NOx amont/aval 4) Contrôle température SCR 5) Catalyseur SCR 6) Fuites échappement'],
+'P2200':['NOx capteur circuit (b1)','Capteur NOx amont, câblage','Contrôle capteur NOx + faisceau'],
+'P2201':['NOx capteur plage (b1)','Capteur NOx HS, contamination','Remplace capteur NOx amont'],
+'P2207':['NOx capteur chauffe (b1)','Résistance chauffe capteur NOx','Remplace capteur NOx'],
+'P229F':['NOx capteur circuit (b2)','Capteur NOx aval','Contrôle capteur NOx aval'],
+'P22AA':['NOx capteur circuit pompe','Pompe AdBlue','Contrôle pompe AdBlue'],
+'P22AE':['NOx capteur pompe circuit bas','Pompe AdBlue HS','Remplace pompe AdBlue'],
+'P242F':['FAP restriction suie','FAP colmaté','Régénération forcée/remplacement'],
+'P2459':['FAP régénérations anormales','Parcours courts, capteurs','Régénération + capteurs'],
+'P2463':['FAP suie excessive','Régénérations incomplètes','Régénération, entretien'],
+'P24AE':['NOx conversion efficacité insuffisante','SCR inefficace','Contrôle catalyseur SCR + AdBlue'],
+'P2563':['Turbo position wastegate','Wastegate','Contrôle wastegate'],
+'P2632':['Pompe refroidissement HT','Pompe HT défaillante','Contrôle pompe HT'],
+'P2635':['Pompe refroidissement perf','Pompe HT perf','Contrôle pompe'],
+/* --- ABS / CHÂSSIS --- */
 'C0035':['Capteur roue AV G','Capteur/câblage','Remplace capteur'],
 'C0040':['Capteur roue AV D','Capteur/câblage','Remplace capteur'],
 'C0045':['Capteur roue AR G','Capteur/câblage','Remplace capteur'],
@@ -128,67 +141,128 @@ var D={
 'C0110':['Moteur pompe ABS','Pompe ABS','Contrôle pompe ABS'],
 'C0121':['Relais pompe ABS','Relais','Contrôle relais'],
 'C0710':['Direction assistée défaut','Capteur couple','Contrôle direction'],
+'C0750':['TPMS capteur 1','Pile/capteur','Remplace capteur'],
+'C1103':['Radar AV Front Assist','Radar sali/décalé','Nettoie/calibre radar'],
+'C1104':['Radar AV signal','Radar HS','Calibration radar'],
 'C1201':['ABS : contrôle moteur','Moteur/ABS','Diagnostic moteur + ABS'],
-/* --- AIRBAG / SRS / CEINTURES --- */
+'C1287':['Capteur angle volant','Capteur','Calibration capteur angle'],
+/* --- AIRBAG / SRS --- */
 'B0001':['Airbag conducteur circuit','Clockspring, coussin','Diagnostic SRS'],
-'B0002':['Airbag passager circuit','Coussin','Diagnostic SRS'],
+'B0002':['Airbag passager circuit','Coussin, capteur occupation','Diagnostic SRS'],
 'B0010':['Airbag latéral G','Coussin latéral','Diagnostic SRS'],
+'B0013':['Airbag rideau G','Rideau','Diagnostic SRS'],
 'B0020':['Airbag latéral D','Coussin latéral','Diagnostic SRS'],
+'B0028':['Airbag rideau D','Rideau','Diagnostic SRS'],
 'B0050':['Prétensionneur ceinture G','Prétensionneur','Remplace prétensionneur'],
 'B0053':['Prétensionneur ceinture D','Prétensionneur','Remplace prétensionneur'],
 'B1000':['Calculateur airbag','Calculateur, clockspring','Diagnostic SRS'],
+'B1310':['Module éclairage LED','Module/faisceau','Contrôle module LED'],
+'B1421':['Résistance pulseur clim','Résistance','Remplace résistance'],
 'B1600':['Clockspring circuit','Clockspring','Remplace clockspring'],
-/* --- ADAS / FRONT ASSIST / CAMÉRAS --- */
-'C1103':['Front Assist : radar AV','Radar sali/décalé','Nettoie/calibre radar'],
-'C1104':['Front Assist : radar signal','Radar','Calibration radar'],
-'C1287':['Capteur angle volant','Capteur','Calibration capteur angle'],
+/* --- RÉSEAU / ÉLECTRONIQUE --- */
+'U0073':['Bus communication désactivé','CAN bus','Contrôle réseau CAN'],
+'U0100':['Perte communication ECM','CAN moteur','Contrôle module moteur'],
 'U0121':['Perte communication ABS','CAN ABS','Contrôle module ABS'],
-'U0235':['Perte comm. régulateur AV','Radar/caméra','Contrôle radar + caméra'],
+'U0155':['Perte communication multimédia','Head unit','MAJ/remplacement head unit'],
+'U0235':['Perte communication radar AV','Radar/caméra','Contrôle radar + caméra'],
 'U0416':['Données ESP invalides','Réseau','Diagnostic réseau'],
-/* --- CHARGE HT / BATTERIE HT / VE --- */
+'U0417':['Données frein invalides','Réseau','Diagnostic réseau'],
+'U0420':['Données direction invalides','Réseau','Diagnostic réseau'],
+'U1233':['Écran multimédia reboot','Software instable','MAJ firmware, reset usine'],
+'U3000':['Module contrôle tension','Alimentation','Contrôle alimentation'],
+/* --- VÉHICULES ÉLECTRIQUES / HYBRIDES --- */
 'P0A0D':['Interlock HT circuit','Câblage orange','Diagnostic HV agréé'],
 'P0A0E':['Interlock HT performance','Connecteurs','Diagnostic HV'],
 'P0A1F':['Module gestion batterie HT','BMS','Diagnostic BMS'],
 'P0A78':['Onduleur puissance','Refroidissement onduleur','Contrôle pompe/liquide'],
-'P0A80':['Batterie HT à remplacer','Modules déséquilibrés','Diagnostic modules'],
+'P0A80':['Batterie HT à remplacer','Modules déséquilibrés, SOH faible','Diagnostic modules, équilibrage, remplacement'],
 'P0A93':['Refroidissement onduleur pompe','Pompe HS','Remplace pompe'],
-'P0AA6':['Isolement batterie HT','Câbles/pack','Diagnostic HV agréé'],
+'P0AA6':['Isolement batterie HT','Câbles/pack, fuite diélectrique','Diagnostic HV agréé uniquement'],
 'P0AFB':['Tension HT basse','Pack/modules','Diagnostic pack'],
-'P0B10':['Tension cellule module 1','Cellules','Équilibrage modules'],
+'P0B10':['Tension cellule module 1','Cellules déséquilibrées','Équilibrage modules'],
+'P0B15':['Tension cellule module 2','Cellules','Équilibrage'],
 'P0B2A':['Température batterie HT','Capteurs T°','Contrôle capteurs T°'],
 'P0B45':['Contacteur HT principal','Contacteur','Diagnostic contacteur'],
 'P0B75':['Capteur courant HT','Capteur','Contrôle capteur'],
 'P0B90':['Isolation HT interne','Pack','Diagnostic pack'],
 'P0C73':['DC/DC sortie défaut','DC-DC','Contrôle DC-DC'],
 'P0C78':['Convertisseur DC/DC défaillant','DC-DC, charge 12V','Contrôle/remplace DC-DC'],
-'P0D16':['Charge HT : circuit pilote','Câble/borne','Contrôle câble + borne'],
-'P0D17':['Charge HT : communication','Câble/borne','Contrôle communication'],
-'P1E00':['Défaut charge VE (OBC)','OBC, câble, borne','Contrôle OBC/prise'],
-/* --- REFROIDISSEMENT --- */
-'P0481':['Ventilateur 2 circuit','Relais, moteur','Contrôle ventilateur 2'],
-'P0691':['Ventilateur 1 commande basse','Relais/câblage','Contrôle relais'],
-'P2632':['Pompe refroidissement HT','Pompe','Contrôle pompe HT'],
-'P2635':['Pompe refroidissement perf','Pompe','Contrôle pompe']
+'P0C79':['DC/DC performance','DC-DC dégradé','Contrôle DC-DC'],
+'P0D16':['Charge HT circuit pilote','Câble/borne','Contrôle câble + borne'],
+'P0D17':['Charge HT communication','Câble/borne','Contrôle communication'],
+'P1E00':['Défaut charge VE (OBC)','OBC, câble, borne','Contrôle OBC/prise']
 };
+
+/* === GÉNÉRATEURS (cylindres, bobines…) === */
 function gen(code){var m;
  if(m=code.match(/^P0?3(0[1-9]|1[0-2])$/)){var n=parseInt(m[1],10);return['Ratés cylindre '+n,'Bobine/bougie/injecteur '+n,'Permuter bobine, contrôler'];}
  if(m=code.match(/^P02(0[1-9]|1[0-2])$/)){var c=parseInt(m[1],10);return['Injecteur cyl. '+c,'Injecteur '+c,'Test injecteur '+c];}
  if(m=code.match(/^P03(5[1-8])$/)){var L='ABCDEFGH';var i=parseInt(code.slice(3),10)-51;return['Bobine '+L[i],'Bobine '+L[i],'Remplace bobine '+L[i]];}
  if(m=code.match(/^P06(7[1-9]|80)$/)){var g=parseInt(code.slice(3),10)-70;return['Préchauffage cyl. '+g,'Bougie '+g,'Remplace bougie '+g];}
  return null;}
-window.dtcInfo=function(code){code=(code||'').toUpperCase().trim();if(D[code])return D[code];return gen(code);};
-window.dtcSuggest=function(q,limit){q=(q||'').toUpperCase().replace(/\s+/g,'');if(!q)return[];var out=[];for(var k in D){if(k.indexOf(q)>-1){out.push({code:k,label:D[k][0]});if(out.length>=limit)break;}}
- if(out.length<limit){for(var c=1;c<=12;c++){var kk='P03'+('0'+c).slice(-2);if(kk.indexOf(q)>-1&&!D[kk]){out.push({code:kk,label:'Ratés cylindre '+c});if(out.length>=limit)break;}}}
- return out;};
-window.dtcSystem=function(code){code=(code||'').toUpperCase();
- if(/^P0[0-3]/.test(code)||/^P1[0-3]/.test(code)||/^P2[0-2]/.test(code))return'Moteur';
- if(/^P04|^P2[04]/.test(code))return'Dépollution';
+
+/* === FONCTION CENTRALE : extraction de codes DTC depuis une chaîne === */
+window.extractDtc = function(q){
+ if(!q)return[];
+ var matches = String(q).match(DTC_REGEX) || [];
+ var seen = {};
+ var out = [];
+ for(var i=0;i<matches.length;i++){
+  var c = matches[i].toUpperCase();
+  if(!seen[c]){seen[c]=1;out.push(c);}
+ }
+ return out;
+};
+
+window.dtcInfo=function(code){
+ code=(code||'').toUpperCase().trim();
+ if(D[code])return D[code];
+ return gen(code);
+};
+
+/* Suggestion : matche par préfixe (P20 → P20EE, P202E, P207F…) */
+window.dtcSuggest=function(q,limit){
+ q=(q||'').toUpperCase().replace(/\s+/g,'');
+ if(!q)return[];
+ var out=[];
+ for(var k in D){
+  if(k.indexOf(q)>-1 || k.startsWith(q)){
+   out.push({code:k,label:D[k][0]});
+   if(out.length>=limit)break;
+  }
+ }
+ /* Tri : codes qui commencent par q d'abord */
+ out.sort(function(a,b){
+  var sa = a.code.startsWith(q)?0:1;
+  var sb = b.code.startsWith(q)?0:1;
+  return sa-sb || a.code.localeCompare(b.code);
+ });
+ /* Générateurs cylindres */
+ if(out.length<limit){
+  for(var c=1;c<=12;c++){
+   var kk='P03'+('0'+c).slice(-2);
+   if(kk.indexOf(q)>-1&&!D[kk]){
+    out.push({code:kk,label:'Ratés cylindre '+c});
+    if(out.length>=limit)break;
+   }
+  }
+ }
+ return out.slice(0,limit);
+};
+
+window.dtcSystem=function(code){
+ code=(code||'').toUpperCase();
+ if(/^P0[0-3]/.test(code)||/^P1[0-3]/.test(code))return'Moteur';
+ if(/^P04|^P20|^P22|^P24/.test(code))return'Dépollution';
  if(/^P0[7-9]|^P17|^P27/.test(code))return'Boîte';
  if(/^C0[0-2]/.test(code)||/^C1[0-4]/.test(code))return'ABS';
  if(/^B00|^B1[0469]/.test(code))return'Airbag';
  if(/^C11|^C12[89]|^U0[124]/.test(code))return'ADAS';
  if(/^P0[A-F]|^P0[C-D]|^P1E/.test(code))return'HT';
- return'Autre';};
+ return'Autre';
+};
+
 window.DTC_COUNT=Object.keys(D).length;
+window.DTC_REGEX=DTC_REGEX;
 try{localStorage.setItem('mrt_dtc_local','1');}catch(e){}
 })();
