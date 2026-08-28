@@ -1,4 +1,4 @@
-/* assistant.js v6 — Recherche améliorée (ID4, P20EE, normalisation) */
+/* assistant.js v7 — Pannes connues + 25+ sources externes organisées */
 (function(){
 'use strict';
 function info(c){return (window.dtcInfo&&window.dtcInfo(c))||null;}
@@ -18,12 +18,13 @@ const KEYWORD_DB=[
 {re:/bo[iî]te|dsg|edc|cvt/i,label:'Boîte',info:'Mécatronique, embrayages.',act:'Vidange + mécatronique.'},
 {re:/batterie|battery/i,label:'Batterie',info:'12V ou HT.',act:'Test 12V / SOH HT.'},
 {re:/charge/i,label:'Charge HT',info:'OBC, CCS, DC-DC.',act:'Contrôle prise/câble/OBC.'},
-{re:/écran|multimédia|tablette/i,label:'Multimédia',info:'Reboots.',act:'MAJ/remplacement.'},
+{re:/écran|multimédia|tablette|infotainment/i,label:'Multimédia',info:'Reboots.',act:'MAJ/remplacement.'},
 {re:/injecteur/i,label:'Injecteurs',info:'Fuite/encrassement.',act:'Test + remplacement.'},
 {re:/bobine|allumage/i,label:'Bobines',info:'Ratés.',act:'Remplacement bobines.'},
-{re:/thermostat|refroidissement/i,label:'Refroidissement',info:'Thermostat, pompes.',act:'Contrôle circuit.'}];
+{re:/thermostat|refroidissement|pompe/i,label:'Refroidissement',info:'Thermostat, pompes.',act:'Contrôle circuit.'},
+{re:/hayon/i,label:'Hayon électrique',info:'Moteur, capteurs.',act:'Diagnostic moteur hayon.'},
+{re:/suspension|pneumatique/i,label:'Suspension',info:'Coussins, sphères, amortisseurs.',act:'Contrôle circuit suspension.'}];
 function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
-/* Normalisation modèle : enlève points, espaces, tirets pour comparaison */
 function normalizeModel(s){return(s||'').toLowerCase().replace(/[.\-\s]/g,'');}
 async function detectVehicle(q){
  const brands=await dbAll('brands');const models=await dbAll('models');
@@ -46,6 +47,17 @@ window.buildAssistant=async function(q){
   html='<div class="detail" style="border-left:4px solid var(--acc2)">';
   codes.forEach(c=>{const i=info(c);if(i){found=true;html+='<b>🤖 '+c+'</b> : '+i[0]+'<br><small>Causes</small>'+i[1]+'<br><small>Action</small>'+i[2]+'<hr>';}});
   KEYWORD_DB.forEach(k=>{if(k.re.test(q)){found=true;html+='<b>🤖 '+k.label+'</b> : '+k.info+'<br><small>Action</small>'+k.act+'<hr>';}});
+  /* Pannes connues pour le modèle détecté */
+  if(veh.b&&veh.m&&window.getKnownIssues){
+   const issues=window.getKnownIssues(veh.b,veh.m);
+   if(issues.length){
+    found=true;
+    html+='<h3 style="margin-top:10px">⚠️ Pannes connues pour '+esc(veh.b)+' '+esc(veh.m)+' ('+issues.length+')</h3>';
+    issues.slice(0,5).forEach(i=>{
+     html+='<div style="margin:6px 0;padding:8px;background:var(--card2);border-radius:8px"><b>'+esc(i[0])+'</b><br><small>Causes</small>'+esc(i[1])+'<br><small>Action</small>'+esc(i[2])+'<br><small>Source : '+esc(i[4]||'')+'</small></div>';
+    });
+   }
+  }
   if(veh.b||veh.m){found=true;html+='<b>🚗 Véhicule :</b> '+esc(veh.b||'')+' '+esc(veh.m||'')+' — fiches ciblées.';}
   html+='</div>';
  }
@@ -63,7 +75,6 @@ window.onSearchInput=async function(q){
  if(html){box.innerHTML=html;box.style.display='';}else box.style.display='none';
 };
 window.pickSuggest=function(code){$('#globalSearch').value=code;document.getElementById('dtcSuggest').style.display='none';renderGlobal(code);};
-/* Auto-complétion modèles avec normalisation */
 window.suggestModels=async function(q){
  q=(q||'').trim().toLowerCase();
  const box=document.getElementById('modelSuggest');
@@ -83,6 +94,22 @@ window.pickModel=function(b,m){
  document.getElementById('modelSuggest').style.display='none';
  $('#dtcModel').focus();
 };
+/* Génère les liens organisés par catégorie */
+function buildExternalLinks(title,queries){
+ if(!window.buildSourceLinks)return'';
+ const cats=window.buildSourceLinks(queries);
+ let html='<div class="drawer" style="margin-top:10px"><h2>🔎 Recherches externes massives ('+(title||'')+') </h2>';
+ for(const cat in cats){
+  if(!cats[cat].items.length)continue;
+  html+='<div style="margin:10px 0"><b>'+cats[cat].label+'</b><div class="actions" style="margin-top:6px">';
+  cats[cat].items.forEach(it=>{
+   html+='<a href="'+it.url+'" target="_blank" rel="noopener" class="chip">'+it.icon+' '+esc(it.name)+'</a>';
+  });
+  html+='</div></div>';
+ }
+ html+='</div>';
+ return html;
+}
 /* Recherche 1 : DTC seul */
 window.searchDtcOnly=async function(){
  const q=($('#dtcOnly').value||'').trim();
@@ -96,10 +123,10 @@ window.searchDtcOnly=async function(){
  if(i){html+='<div class="detail"><small>Causes probables</small>'+i[1]+'<small>Action</small>'+i[2]+'</div>';}
  html+='<div class="muted">'+sheets.length+' fiche(s) dans la base contiennent ce code.</div>';
  sheets.slice(0,10).forEach(s=>{html+='<div class="rowItem" onclick="openSheetById(\''+s.id+'\')"><b>'+esc(s.b)+' '+esc(s.m)+'</b><span>'+esc(s.titre.slice(0,50))+'</span></div>';});
- html+='<hr><div class="muted">🔎 Recherches externes :</div><div class="actions"><a href="https://rappel.conso.gouv.fr/recherche?query='+encodeURIComponent(code)+'" target="_blank" class="chip">Rappel Conso</a><a href="https://ec.europa.eu/safety-gate-alerts/screen/search?query='+encodeURIComponent(code)+'" target="_blank" class="chip">Safety Gate</a><a href="https://www.largus.fr/recherche?q='+encodeURIComponent(code)+'" target="_blank" class="chip">L\'Argus</a></div>';
+ html+=buildExternalLinks(code,[code]);
  box.innerHTML=html;
 };
-/* Recherche 2 : modèle + DTC avec normalisation */
+/* Recherche 2 : modèle + DTC */
 window.searchDtcModel=async function(){
  const q=($('#dtcModel').value||'').trim().toLowerCase();
  const box=$('#dtcResult2');
@@ -116,25 +143,24 @@ window.searchDtcModel=async function(){
  if(!fm){box.innerHTML='<p class="muted">Modèle non reconnu. Ex : « 3008 P0016 », « ID4 P0A80 ».</p>';return;}
  const i=info(code);
  const sheets=(await dbAll('sheets')).filter(s=>s.m===fm.m&&(s.dtc||[]).some(d=>d.toUpperCase()===code));
- const engines=(await dbAll('engines')).filter(x=>x.b===fm.b&&x.m===fm.m);
- const sys=window.dtcSystem?window.dtcSystem(code):'Autre';
- let famHit=null;
- outer:for(const e of engines){for(const r of FAM){if((!r.brands.length||r.brands.includes(e.b))&&(r.re.test(e.e)||r.re.test(e.m))){if((r.d||[]).includes(code)||r.cat===sys||(r.t&&r.t.toLowerCase().includes(sys.toLowerCase()))){famHit=r;break outer;}}}}
- let verdict;
- if(sheets.length){verdict='<div class="detail" style="border-left:4px solid var(--acc2)">✅ <b>DÉFAUT CONNU</b> pour '+esc(fm.b)+' '+esc(fm.m)+' ('+code+') — '+sheets.length+' fiche(s) spécifique(s).</div>';}
- else if(famHit){verdict='<div class="detail" style="border-left:4px solid var(--warn)">⚠️ <b>Défaut connu sur cette famille/motorisation</b> : '+esc(famHit.t)+'.</div>';}
- else if(i){verdict='<div class="detail" style="border-left:4px solid var(--acc)">📘 Code documenté (générique) : '+esc(i[0])+' — pas de campagne spécifique trouvée pour ce modèle.</div>';}
- else{verdict='<div class="detail" style="border-left:4px solid var(--danger)">❓ Code non trouvé dans la base.</div>';}
- let html=verdict;
+ const issues=(window.getKnownIssues?window.getKnownIssues(fm.b,fm.m):[])||[];
+ let html='<div class="detail" style="border-left:4px solid var(--acc2)"><b>'+esc(fm.b)+' '+esc(fm.m)+' + '+code+'</b></div>';
+ if(sheets.length){html+='<div class="detail" style="border-left:4px solid var(--acc2)">✅ <b>DÉFAUT CONNU</b> — '+sheets.length+' fiche(s) spécifique(s).</div>';}
+ else if(i){html+='<div class="detail" style="border-left:4px solid var(--acc)">📘 Code générique : '+esc(i[0])+'</div>';}
  if(i){html+='<div class="detail"><small>Causes</small>'+i[1]+'<small>Action</small>'+i[2]+'</div>';}
+ /* Pannes connues */
+ if(issues.length){
+  html+='<h3 style="margin-top:14px">⚠️ Pannes connues '+esc(fm.b)+' '+esc(fm.m)+' ('+issues.length+')</h3>';
+  issues.forEach(iss=>{
+   const dtcMatch=(iss[3]||[]).some(d=>d.toUpperCase()===code);
+   html+='<div style="margin:6px 0;padding:8px;background:var(--card2);border-radius:8px;border-left:3px solid '+(dtcMatch?'var(--acc2)':'var(--acc)')+'">';
+   if(dtcMatch)html+='<span class="chip" style="background:var(--acc2);color:#fff;font-size:10px;padding:2px 6px;margin-right:6px">code trouvé</span>';
+   html+='<b>'+esc(iss[0])+'</b><br><small>Causes</small>'+esc(iss[1])+'<br><small>Action</small>'+esc(iss[2])+'<br><small>Source : '+esc(iss[4]||'')+' • DTC : '+esc((iss[3]||[]).join(', ')||'—')+'</small></div>';
+  });
+ }
  sheets.slice(0,8).forEach(s=>{html+='<div class="rowItem" onclick="openSheetById(\''+s.id+'\')"><b>'+esc(s.titre.slice(0,50))+'</b><span>'+esc(s.src||'')+'</span></div>';});
- html+='<hr><div class="muted">🔎 Recherches externes sur '+esc(fm.b)+' '+esc(fm.m)+' + '+code+' :</div>';
- html+='<div class="actions">';
- html+='<a href="https://rappel.conso.gouv.fr/recherche?query='+encodeURIComponent(fm.b+' '+fm.m)+'" target="_blank" class="chip">Rappel Conso</a>';
- html+='<a href="https://ec.europa.eu/safety-gate-alerts/screen/search?query='+encodeURIComponent(fm.b+' '+fm.m)+'" target="_blank" class="chip">Safety Gate</a>';
- html+='<a href="https://www.largus.fr/recherche?q='+encodeURIComponent(fm.b+' '+fm.m+' '+code)+'" target="_blank" class="chip">L\'Argus</a>';
- html+='<a href="https://baike.baidu.com/item/'+encodeURIComponent(fm.b+' '+fm.m)+'" target="_blank" class="chip">Baidu (Chine)</a>';
- html+='</div>';
+ const queries=[fm.b+' '+fm.m,fm.b+' '+fm.m+' '+code,fm.m+' problèmes'];
+ html+=buildExternalLinks(fm.b+' '+fm.m,queries);
  box.innerHTML=html;
 };
 window.openSheetById=async function(id){
