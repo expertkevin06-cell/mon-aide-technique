@@ -1,4 +1,4 @@
-/* dtc-db.js v2 — Base DTC massive (P20EE corrigé + générateurs étendus) */
+/* dtc-db.js v3 — Base DTC massive vérifiée (P20EE corrigé) */
 (function(){
 'use strict';
 var D={
@@ -88,12 +88,11 @@ var D={
 'P0496':['EVAP purge élevée','Électrovanne ouverte','Remplace électrovanne'],
 'P2002':['FAP efficacité basse','FAP colmaté','Régénération, contrôle FAP'],
 'P20BA':['AdBlue : chauffe injecteur','Injecteur AdBlue, câblage','Contrôle injecteur AdBlue'],
-'P20EE':['SCR NOx : efficacité catalyseur sous seuil','Catalyseur SCR dégradé, qualité AdBlue, injecteur AdBlue','Contrôle qualité AdBlue, injecteur, catalyseur SCR'],
+'P20EE':['Rendement catalyseur SCR insuffisant pour traiter les NOx','Catalyseur SCR dégradé, qualité AdBlue, injecteur AdBlue, capteur NOx','Contrôle qualité AdBlue, injecteur, catalyseur SCR, capteur NOx'],
 'P202E':['AdBlue : injection faible','Injecteur bouché, pompe','Contrôle injecteur + pompe AdBlue'],
 'P203C':['AdBlue : niveau capteur','Capteur niveau','Contrôle capteur niveau'],
 'P204D':['AdBlue : qualité/capteur','AdBlue contaminé, capteur','Contrôle qualité AdBlue + capteur'],
 'P207F':['AdBlue : qualité réservoir','AdBlue contaminé','Vidange/remplissage AdBlue'],
-'P20EE':['SCR NOx efficacité basse','Catalyseur SCR, AdBlue, injecteur','Contrôle SCR + qualité AdBlue + injecteur'],
 'P2200':['NOx capteur circuit (b1)','Capteur NOx','Contrôle capteur NOx'],
 'P2201':['NOx capteur plage (b1)','Capteur NOx','Remplace capteur NOx'],
 'P2207':['NOx capteur chauffe (b1)','Capteur NOx','Remplace capteur NOx'],
