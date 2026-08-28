@@ -1,17 +1,26 @@
 {
+  "id": "./",
   "name": "Mon Aide Technique by Kevin",
   "short_name": "Mon Aide Technique",
-  "description": "Fiches techniques, rappels et pannes connues par marque, modèle et motorisation",
+  "description": "Fiches techniques, codes défaut DTC, rappels et pannes connues par marque, modèle et motorisation. Hors ligne.",
+  "lang": "fr",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
   "background_color": "#0b1220",
   "theme_color": "#0b1220",
-  "lang": "fr",
+  "categories": ["productivity", "utilities", "business"],
+  "dir": "ltr",
+  "prefer_related_applications": false,
   "icons": [
-    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
-    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
     {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Recherche DTC", "url": "./index.html#dtc", "description": "Rechercher un code défaut"},
+    {"name": "Administration", "url": "./index.html#admin", "description": "Mode administrateur"}
   ]
 }
