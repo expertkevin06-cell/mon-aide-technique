@@ -42,12 +42,10 @@ async function detectVehicle(q){
 }
 
 window.buildAssistant=async function(q){
- /* === EXTRACTION DTC CORRIGÉE (P20EE, P202E, etc.) === */
- const codes = (window.extractDtc ? window.extractDtc(q) : []) ;
+ const codes = (window.extractDtc ? window.extractDtc(q) : []);
  const veh=await detectVehicle(q);
  let html='',found=false;
 
- /* === RÉPONSES CODES DTC (massives) === */
  if(codes.length){
   codes.forEach(c=>{
    const i = (window.dtcInfo && window.dtcInfo(c)) || null;
@@ -59,7 +57,6 @@ window.buildAssistant=async function(q){
     html+='<div style="margin-top:6px;font-size:15px"><b>'+i[0]+'</b></div>';
     html+='<div style="margin-top:8px"><small>🔧 Causes probables</small><div style="margin-top:4px">'+i[1]+'</div></div>';
     html+='<div style="margin-top:8px"><small>✅ Action recommandée</small><div style="margin-top:4px">'+i[2]+'</div></div>';
-    /* Codes associés (si AdBlue/SCR : afficher les codes voisins) */
     if(/^P20/.test(c)||/^P22/.test(c)||/^P24/.test(c)){
      html+='<div style="margin-top:8px"><small>🔗 Codes dépollution associés</small>';
      const related=['P2002','P202E','P20BA','P20EE','P2200','P2201','P2207','P242F','P2459','P2463'];
@@ -74,7 +71,6 @@ window.buildAssistant=async function(q){
   });
  }
 
- /* === RÉPONSES MOTS-CLÉS === */
  KEYWORD_DB.forEach(k=>{
   if(k.re.test(q)){
    found=true;
@@ -82,19 +78,18 @@ window.buildAssistant=async function(q){
   }
  });
 
- /* === PANNES CONNUES POUR LE MODÈLE DÉTECTÉ === */
  if(veh.b&&veh.m&&window.getKnownIssues){
   const issues=window.getKnownIssues(veh.b,veh.m);
   if(issues.length){
    found=true;
    html+='<div class="detail" style="border-left:4px solid var(--warn)">';
-   html+='<h3 style="margin:0">⚠️ Pannes connues '+veh.b+' '+veh.m+' ('+issues.length+')</h3>';
+   html+='<h3 style="margin:0">⚠️ Pannes connues '+esc(veh.b)+' '+esc(veh.m)+' ('+issues.length+')</h3>';
    issues.slice(0,6).forEach(i=>{
     html+='<div style="margin:8px 0;padding:8px;background:var(--card2);border-radius:8px">';
-    html+='<b>'+i[0]+'</b><br>';
-    html+='<small>Causes</small>'+i[1]+'<br>';
-    html+='<small>Action</small>'+i[2]+'<br>';
-    html+='<small>Source : '+(i[4]||'—')+' • DTC : '+(i[3]&&i[3].length?i[3].join(', '):'—')+'</small>';
+    html+='<b>'+esc(i[0])+'</b><br>';
+    html+='<small>Causes</small>'+esc(i[1])+'<br>';
+    html+='<small>Action</small>'+esc(i[2])+'<br>';
+    html+='<small>Source : '+esc(i[4]||'—')+' • DTC : '+(i[3]&&i[3].length?i[3].join(', '):'—')+'</small>';
     html+='</div>';
    });
    html+='</div>';
@@ -103,13 +98,12 @@ window.buildAssistant=async function(q){
 
  if(veh.b||veh.m){
   found=true;
-  html+='<div class="detail" style="border-left:4px solid var(--acc2)"><b>🚗 Véhicule détecté :</b> '+(veh.b||'')+' '+(veh.m||'')+'</div>';
+  html+='<div class="detail" style="border-left:4px solid var(--acc2)"><b>🚗 Véhicule détecté :</b> '+esc(veh.b||'')+' '+esc(veh.m||'')+'</div>';
  }
 
  return{html:found?html:'',b:veh.b,m:veh.m,codes:codes};
 };
 
-/* Saisie en direct dans la case principale */
 window.onSearchInput=async function(q){
  const box=document.getElementById('dtcSuggest');if(!box)return;
  q=(q||'').trim();
@@ -117,7 +111,6 @@ window.onSearchInput=async function(q){
  const ql=q.toLowerCase();
  let html='';
 
- /* === EXTRACTION DTC CORRIGÉE === */
  const codes = (window.extractDtc ? window.extractDtc(q) : []);
  codes.forEach(c=>{
   const i = window.dtcInfo && window.dtcInfo(c);
@@ -126,21 +119,19 @@ window.onSearchInput=async function(q){
   }
  });
 
- /* Suggestions DTC */
  if(window.dtcSuggest){
   const sug=window.dtcSuggest(ql,10);
   if(sug.length){
    html+='<div class="muted" style="margin-top:8px">Codes correspondants :</div>';
    sug.forEach(s=>{
-    html+='<div class="rowItem" onclick="pickSuggest(\''+s.code+'\')"><b>'+s.code+'</b><span>'+s.label.slice(0,70)+'</span></div>';
+    html+='<div class="rowItem" onclick="pickSuggest(\''+s.code+'\')"><b>'+s.code+'</b><span>'+esc(s.label.slice(0,70))+'</span></div>';
    });
   }
  }
 
- /* Suggestions mots-clés */
  KEYWORD_DB.forEach(k=>{
   if(k.re.test(ql)){
-   html+='<div class="rowItem" onclick="validateSearch()"><b>🤖 '+k.label+'</b><span>'+k.info.slice(0,50)+'…</span></div>';
+   html+='<div class="rowItem" onclick="validateSearch()"><b>🤖 '+k.label+'</b><span>'+esc(k.info.slice(0,50))+'…</span></div>';
   }
  });
 
@@ -153,7 +144,6 @@ window.pickSuggest=function(code){
  renderGlobal(code);
 };
 
-/* Auto-complétion modèles */
 window.suggestModels=async function(q){
  q=(q||'').trim().toLowerCase();
  const box=document.getElementById('modelSuggest');
@@ -167,7 +157,7 @@ window.suggestModels=async function(q){
  let html='<div class="muted">Modèles correspondants :</div>';
  matches.forEach(m=>{
   const b=brands.find(x=>x.name===m.b);
-  html+='<div class="rowItem" onclick="pickModel(\''+m.b+'\',\''+m.m+'\')"><b>'+m.m+'</b><span>'+m.b+(b?' • '+b.origin:'')+'</span></div>';
+  html+='<div class="rowItem" onclick="pickModel(\''+esc(m.b)+'\',\''+esc(m.m)+'\')"><b>'+esc(m.m)+'</b><span>'+esc(m.b)+(b?' • '+b.origin:'')+'</span></div>';
  });
  box.innerHTML=html;box.style.display='';
 };
@@ -178,16 +168,15 @@ window.pickModel=function(b,m){
  $('#dtcModel').focus();
 };
 
-/* Liens externes organisés */
 function buildExternalLinks(title,queries){
  if(!window.buildSourceLinks)return'';
  const cats=window.buildSourceLinks(queries);
- let html='<div class="drawer" style="margin-top:10px"><h2>🔎 Recherches externes massives ('+title+')</h2>';
+ let html='<div class="drawer" style="margin-top:10px"><h2>🔎 Recherches externes massives ('+esc(title)+')</h2>';
  for(const cat in cats){
   if(!cats[cat].items.length)continue;
   html+='<div style="margin:10px 0"><b>'+cats[cat].label+'</b><div class="actions" style="margin-top:6px">';
   cats[cat].items.forEach(it=>{
-   html+='<a href="'+it.url+'" target="_blank" rel="noopener" class="chip">'+it.icon+' '+it.name+'</a>';
+   html+='<a href="'+it.url+'" target="_blank" rel="noopener" class="chip">'+it.icon+' '+esc(it.name)+'</a>';
   });
   html+='</div></div>';
  }
@@ -199,7 +188,6 @@ function buildExternalLinks(title,queries){
 window.searchDtcOnly=async function(){
  const q=($('#dtcOnly').value||'').trim();
  const box=$('#dtcResult1');
- /* === EXTRACTION DTC CORRIGÉE === */
  const codes=(window.extractDtc?window.extractDtc(q):[]);
  if(!codes.length){box.innerHTML='<p class="muted">Indiquez un n° DTC valide (ex : P0016, P20EE, P202E, C0035).</p>';return;}
 
@@ -220,17 +208,16 @@ window.searchDtcOnly=async function(){
 
   html+='<div class="muted" style="margin-top:8px">'+sheets.length+' fiche(s) dans la base locale contiennent '+code+'</div>';
   sheets.slice(0,10).forEach(s=>{
-   html+='<div class="rowItem" onclick="openSheetById(\''+s.id+'\')"><b>'+s.b+' '+s.m+(s.e?' • '+s.e:'')+'</b><span>'+s.titre.slice(0,50)+'</span></div>';
+   html+='<div class="rowItem" onclick="openSheetById(\''+s.id+'\')"><b>'+esc(s.b)+' '+esc(s.m)+(s.e?' • '+s.e:'')+'</b><span>'+esc(s.titre.slice(0,50))+'</span></div>';
   });
 
-  /* Codes associés (dépollution) */
   if(/^P20/.test(code)||/^P22/.test(code)||/^P24/.test(code)){
    const related=['P2002','P202E','P20BA','P20EE','P2200','P2201','P2207','P242F','P2459','P2463'];
    html+='<div class="drawer" style="margin-top:10px"><h2>🔗 Codes dépollution associés</h2>';
    related.forEach(rc=>{
     const ri=window.dtcInfo(rc);
     if(ri&&rc!==code){
-     html+='<div class="rowItem" onclick="$(\'#dtcOnly\').value=\''+rc+'\';searchDtcOnly()"><b>'+rc+'</b><span>'+ri[0].slice(0,60)+'</span></div>';
+     html+='<div class="rowItem" onclick="$(\'#dtcOnly\').value=\''+rc+'\';searchDtcOnly()"><b>'+rc+'</b><span>'+esc(ri[0].slice(0,60))+'</span></div>';
     }
    });
    html+='</div>';
@@ -245,7 +232,6 @@ window.searchDtcOnly=async function(){
 window.searchDtcModel=async function(){
  const q=($('#dtcModel').value||'').trim().toLowerCase();
  const box=$('#dtcResult2');
- /* === EXTRACTION DTC CORRIGÉE === */
  const codes=(window.extractDtc?window.extractDtc(q):[]);
  if(!codes.length){box.innerHTML='<p class="muted">Format : « modèle suivi du dtc » (ex : 3008 P0016, ID4 P0A80, Tiguan P20EE).</p>';return;}
 
@@ -265,7 +251,7 @@ window.searchDtcModel=async function(){
  const sys = window.dtcSystem ? window.dtcSystem(code) : 'Autre';
 
  let html='<div class="detail" style="border-left:4px solid var(--acc2)">';
- html+='<b>'+fm.b+' '+fm.m+' + '+code+'</b> <span class="chip" style="font-size:10px;padding:2px 6px;margin-left:6px">'+sys+'</span>';
+ html+='<b>'+esc(fm.b)+' '+esc(fm.m)+' + '+code+'</b> <span class="chip" style="font-size:10px;padding:2px 6px;margin-left:6px">'+sys+'</span>';
  if(sheets.length){html+=' <span class="chip" style="background:var(--acc2);color:#fff;font-size:10px;padding:2px 6px">✅ DÉFAUT CONNU</span>';}
  html+='<div style="margin-top:6px;font-size:15px"><b>'+(i?i[0]:'Code non documenté')+'</b></div>';
  if(i){
@@ -274,20 +260,19 @@ window.searchDtcModel=async function(){
  }
  html+='</div>';
 
- /* Pannes connues */
  if(issues.length){
-  html+='<div class="drawer" style="margin-top:10px"><h2>⚠️ Pannes connues '+fm.b+' '+fm.m+' ('+issues.length+')</h2>';
+  html+='<div class="drawer" style="margin-top:10px"><h2>⚠️ Pannes connues '+esc(fm.b)+' '+esc(fm.m)+' ('+issues.length+')</h2>';
   issues.forEach(iss=>{
    const dtcMatch=(iss[3]||[]).some(d=>d.toUpperCase()===code);
    html+='<div style="margin:6px 0;padding:8px;background:var(--card2);border-radius:8px;border-left:3px solid '+(dtcMatch?'var(--acc2)':'var(--acc)')+'">';
    if(dtcMatch)html+='<span class="chip" style="background:var(--acc2);color:#fff;font-size:10px;padding:2px 6px;margin-right:6px">code trouvé</span>';
-   html+='<b>'+iss[0]+'</b><br><small>Causes</small>'+iss[1]+'<br><small>Action</small>'+iss[2]+'<br><small>Source : '+(iss[4]||'—')+' • DTC : '+(iss[3]&&iss[3].length?iss[3].join(', '):'—')+'</small></div>';
+   html+='<b>'+esc(iss[0])+'</b><br><small>Causes</small>'+esc(iss[1])+'<br><small>Action</small>'+esc(iss[2])+'<br><small>Source : '+esc(iss[4]||'—')+' • DTC : '+(iss[3]&&iss[3].length?iss[3].join(', '):'—')+'</small></div>';
   });
   html+='</div>';
  }
 
  sheets.slice(0,8).forEach(s=>{
-  html+='<div class="rowItem" onclick="openSheetById(\''+s.id+'\')"><b>'+s.titre.slice(0,50)+'</b><span>'+(s.src||'')+'</span></div>';
+  html+='<div class="rowItem" onclick="openSheetById(\''+s.id+'\')"><b>'+esc(s.titre.slice(0,50))+'</b><span>'+esc(s.src||'')+'</span></div>';
  });
 
  const queries=[fm.b+' '+fm.m,fm.b+' '+fm.m+' '+code,fm.m+' problèmes',code];
