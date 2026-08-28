@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"><title>Générer icônes</title></head>
+<body style="font-family:sans-serif;background:#0b1220;color:#fff;text-align:center;padding:30px">
+<h2>🎨 Génération des icônes PNG</h2>
+<p><b>icon-512.png</b> puis <b>icon-192.png</b> vont se télécharger.<br>
+Uploadez-les sur GitHub via <b>Upload files</b> (remplacez les anciens).</p>
+<canvas id="c" width="512" height="512" style="width:140px;border-radius:24px"></canvas>
+<script>
+function draw(size){
+ var c=document.getElementById('c');c.width=size;c.height=size;
+ var x=c.getContext('2d'),u=size/512;
+ var g=x.createLinearGradient(0,0,0,size);g.addColorStop(0,'#1d6fd1');g.addColorStop(1,'#0b1220');
+ x.fillStyle=g;var r=96*u;
+ x.beginPath();x.moveTo(r,0);x.lineTo(size,0);x.arcTo(size,size,size-r,size,r);x.lineTo(0,size);x.arcTo(0,size,0,size-r,r);x.lineTo(0,0);x.arcTo(0,0,r,0,r);x.closePath();x.fill();
+ x.strokeStyle='#3aa0ff';x.lineWidth=34*u;
+ x.beginPath();x.arc(256*u,236*u,120*u,0,Math.PI*2);x.stroke();
+ x.fillStyle='#22d3a5';x.beginPath();x.arc(256*u,236*u,34*u,0,Math.PI*2);x.fill();
+ x.lineWidth=26*u;x.beginPath();
+ x.moveTo(256*u,270*u);x.lineTo(256*u,356*u);
+ x.moveTo(136*u,236*u);x.lineTo(222*u,236*u);
+ x.moveTo(290*u,236*u);x.lineTo(376*u,236*u);x.stroke();
+ x.fillStyle='#fff';x.font='bold '+(72*u)+'px Arial';x.textAlign='center';
+ x.fillText('MRT',256*u,452*u);
+ return c.toDataURL('image/png');
+}
+function dl(size,name){var a=document.createElement('a');a.href=draw(size);a.download=name;a.click();}
+setTimeout(function(){dl(512,'icon-512.png');setTimeout(function(){dl(192,'icon-192.png');},600);},400);
+</script>
+</body></html>
