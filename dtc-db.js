@@ -3,7 +3,6 @@
 'use strict';
 
 /* === REGEX CENTRAL : détecte tous les codes OBD-II (numériques ET hexadécimaux) === */
-/* Formats supportés : P0016, P20EE, P202E, P242F, C0035, B0001, U0155, U1233 */
 const DTC_REGEX = /\b[pcbu][0-9a-f]{4,5}\b/gi;
 
 var D={
@@ -112,7 +111,7 @@ var D={
 'P2135':['Corrélation pédale/papillon','Capteurs','Contrôle capteurs'],
 'P2177':['Pauvre hors ralenti','Prise air, injecteurs','Recherche fuite'],
 'P2187':['Riche au ralenti','Injecteurs','Contrôle injecteurs'],
-/* --- DÉPOLLUTION (EGR/FAP/AdBlue/NOx/SCR) — CODES CRITIQUES --- */
+/* --- DÉPOLLUTION (EGR/FAP/AdBlue/NOx/SCR) --- */
 'P2002':['FAP efficacité basse','FAP colmaté','Régénération, contrôle FAP'],
 'P202E':['AdBlue : injection faible','Injecteur bouché, pompe, cristallisation','Contrôle injecteur + pompe AdBlue, rinçage circuit'],
 'P203C':['AdBlue : niveau capteur','Capteur niveau, réservoir','Contrôle capteur niveau AdBlue'],
@@ -231,13 +230,11 @@ window.dtcSuggest=function(q,limit){
    if(out.length>=limit)break;
   }
  }
- /* Tri : codes qui commencent par q d'abord */
  out.sort(function(a,b){
   var sa = a.code.startsWith(q)?0:1;
   var sb = b.code.startsWith(q)?0:1;
   return sa-sb || a.code.localeCompare(b.code);
  });
- /* Générateurs cylindres */
  if(out.length<limit){
   for(var c=1;c<=12;c++){
    var kk='P03'+('0'+c).slice(-2);
