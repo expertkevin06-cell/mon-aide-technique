@@ -1,10 +1,12 @@
-/* dtc-db.js v4 — Extraction DTC corrigée (P20EE, P202E, codes alphanumériques) */
+/* dtc-db.js v5 — Extraction DTC robuste + détection modèle (insensible à la casse) */
 (function(){
 'use strict';
 
-/* === REGEX CENTRAL : détecte tous les codes OBD-II (numériques ET hexadécimaux) === */
-const DTC_REGEX = /\b[pcbu][0-9a-f]{4,5}\b/gi;
+/* === REGEX CENTRAL : détecte tous les codes OBD-II === */
+/* Supporte : P0016, P20EE, P202E, P242F, C0035, B0001, U0155 */
+var DTC_REGEX = /\b[pcbu][0-9a-f]{4,5}\b/gi;
 
+/* === BASE DTC COMPLÈTE === */
 var D={
 /* --- MOTEUR --- */
 'P0001':['Régulateur débit carburant : circuit','Régulateur, câblage','Contrôle circuit + régulateur'],
@@ -192,7 +194,7 @@ var D={
 'P1E00':['Défaut charge VE (OBC)','OBC, câble, borne','Contrôle OBC/prise']
 };
 
-/* === GÉNÉRATEURS (cylindres, bobines…) === */
+/* === GÉNÉRATEURS === */
 function gen(code){var m;
  if(m=code.match(/^P0?3(0[1-9]|1[0-2])$/)){var n=parseInt(m[1],10);return['Ratés cylindre '+n,'Bobine/bougie/injecteur '+n,'Permuter bobine, contrôler'];}
  if(m=code.match(/^P02(0[1-9]|1[0-2])$/)){var c=parseInt(m[1],10);return['Injecteur cyl. '+c,'Injecteur '+c,'Test injecteur '+c];}
@@ -200,66 +202,96 @@ function gen(code){var m;
  if(m=code.match(/^P06(7[1-9]|80)$/)){var g=parseInt(code.slice(3),10)-70;return['Préchauffage cyl. '+g,'Bougie '+g,'Remplace bougie '+g];}
  return null;}
 
-/* === FONCTION CENTRALE : extraction de codes DTC depuis une chaîne === */
+/* === EXTRACTION DTC ROBUSTE (fallback multi-patterns) === */
 window.extractDtc = function(q){
- if(!q)return[];
- var matches = String(q).match(DTC_REGEX) || [];
- var seen = {};
+ if(!q) return [];
+ var text = String(q);
  var out = [];
- for(var i=0;i<matches.length;i++){
-  var c = matches[i].toUpperCase();
-  if(!seen[c]){seen[c]=1;out.push(c);}
+ var seen = {};
+
+ /* Pattern 1 : regex standard (P0016, P20EE, etc.) */
+ var matches1 = text.match(DTC_REGEX) || [];
+ for(var i=0; i<matches1.length; i++){
+  var c = matches1[i].toUpperCase();
+  if(!seen[c]){ seen[c] = 1; out.push(c); }
  }
+
+ /* Pattern 2 : fallback pour codes non-standards (lettres au milieu) */
+ var matches2 = text.match(/\b[pcbu][0-9]{2}[a-f]{2}\b/gi) || [];
+ for(var j=0; j<matches2.length; j++){
+  var c2 = matches2[j].toUpperCase();
+  if(!seen[c2]){ seen[c2] = 1; out.push(c2); }
+ }
+
+ /* Pattern 3 : codes avec 3 chiffres + 2 lettres (P20EE) */
+ var matches3 = text.match(/\b[pcbu]\d{2,3}[a-f]{1,2}\b/gi) || [];
+ for(var k=0; k<matches3.length; k++){
+  var c3 = matches3[k].toUpperCase();
+  if(!seen[c3] && c3.length >= 5){ seen[c3] = 1; out.push(c3); }
+ }
+
  return out;
 };
 
-window.dtcInfo=function(code){
- code=(code||'').toUpperCase().trim();
- if(D[code])return D[code];
+/* === INFO DTC === */
+window.dtcInfo = function(code){
+ if(!code) return null;
+ code = String(code).toUpperCase().trim();
+ if(D[code]) return D[code];
  return gen(code);
 };
 
-/* Suggestion : matche par préfixe (P20 → P20EE, P202E, P207F…) */
-window.dtcSuggest=function(q,limit){
- q=(q||'').toUpperCase().replace(/\s+/g,'');
- if(!q)return[];
- var out=[];
+/* === SUGGESTIONS === */
+window.dtcSuggest = function(q, limit){
+ if(!q) return [];
+ q = String(q).toUpperCase().replace(/\s+/g,'');
+ if(!q) return [];
+ var out = [];
  for(var k in D){
-  if(k.indexOf(q)>-1 || k.startsWith(q)){
-   out.push({code:k,label:D[k][0]});
-   if(out.length>=limit)break;
+  if(k.indexOf(q) > -1 || k.startsWith(q)){
+   out.push({code:k, label:D[k][0]});
+   if(out.length >= limit) break;
   }
  }
  out.sort(function(a,b){
-  var sa = a.code.startsWith(q)?0:1;
-  var sb = b.code.startsWith(q)?0:1;
-  return sa-sb || a.code.localeCompare(b.code);
+  var sa = a.code.startsWith(q) ? 0 : 1;
+  var sb = b.code.startsWith(q) ? 0 : 1;
+  return sa - sb || a.code.localeCompare(b.code);
  });
- if(out.length<limit){
-  for(var c=1;c<=12;c++){
-   var kk='P03'+('0'+c).slice(-2);
-   if(kk.indexOf(q)>-1&&!D[kk]){
-    out.push({code:kk,label:'Ratés cylindre '+c});
-    if(out.length>=limit)break;
+ if(out.length < limit){
+  for(var c=1; c<=12; c++){
+   var kk = 'P03' + ('0'+c).slice(-2);
+   if(kk.indexOf(q) > -1 && !D[kk]){
+    out.push({code:kk, label:'Ratés cylindre '+c});
+    if(out.length >= limit) break;
    }
   }
  }
- return out.slice(0,limit);
+ return out.slice(0, limit || 10);
 };
 
-window.dtcSystem=function(code){
- code=(code||'').toUpperCase();
- if(/^P0[0-3]/.test(code)||/^P1[0-3]/.test(code))return'Moteur';
- if(/^P04|^P20|^P22|^P24/.test(code))return'Dépollution';
- if(/^P0[7-9]|^P17|^P27/.test(code))return'Boîte';
- if(/^C0[0-2]/.test(code)||/^C1[0-4]/.test(code))return'ABS';
- if(/^B00|^B1[0469]/.test(code))return'Airbag';
- if(/^C11|^C12[89]|^U0[124]/.test(code))return'ADAS';
- if(/^P0[A-F]|^P0[C-D]|^P1E/.test(code))return'HT';
- return'Autre';
+/* === SYSTÈME DTC === */
+window.dtcSystem = function(code){
+ if(!code) return 'Autre';
+ code = String(code).toUpperCase();
+ if(/^P0[0-3]/.test(code) || /^P1[0-3]/.test(code)) return 'Moteur';
+ if(/^P04|^P20|^P22|^P24/.test(code)) return 'Dépollution';
+ if(/^P0[7-9]|^P17|^P27/.test(code)) return 'Boîte';
+ if(/^C0[0-2]/.test(code) || /^C1[0-4]/.test(code)) return 'ABS';
+ if(/^B00|^B1[0469]/.test(code)) return 'Airbag';
+ if(/^C11|^C12[89]|^U0[124]/.test(code)) return 'ADAS';
+ if(/^P0[A-F]|^P0[C-D]|^P1E/.test(code)) return 'HT';
+ return 'Autre';
 };
 
-window.DTC_COUNT=Object.keys(D).length;
-window.DTC_REGEX=DTC_REGEX;
-try{localStorage.setItem('mrt_dtc_local','1');}catch(e){}
+/* === NORMALISATION MODÈLE (insensible casse + supprime . - espaces) === */
+window.normalizeModel = function(s){
+ return (s || '').toLowerCase().replace(/[.\-\s\u00a0]+/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+};
+
+window.DTC_COUNT = Object.keys(D).length;
+window.DTC_REGEX = DTC_REGEX;
+try { localStorage.setItem('mrt_dtc_local', '1'); } catch(e){}
+
+console.log('[dtc-db] v5 chargé — ' + window.DTC_COUNT + ' codes DTC');
 })();
