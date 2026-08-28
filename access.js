@@ -1,13 +1,13 @@
-/* access.js v5 — Expiration automatique 1 mois + révocation forcée */
+/* access.js v6 — Verrouillage strict : tiers = demande obligatoire, admin = mot de passe */
 (function(){
 'use strict';
 
-var ACCESS_VERSION = 'v5_expiration_1month';
+var ACCESS_VERSION = 'v6_strict_lock';
 var EXPIRATION_MS = 30 * 24 * 3600 * 1000; // 30 jours
 
 /* Nettoyage anciens accès */
 (function purgeLegacy(){
- var keys = ['mrt_access_legacy','mrt_user_authorized','mrt_access_token','mrt_legacy_session'];
+ var keys = ['mrt_access_legacy','mrt_user_authorized','mrt_access_token','mrt_legacy_session','mrt_open_access'];
  keys.forEach(function(k){ try { localStorage.removeItem(k); } catch(e){} });
 })();
 
@@ -21,7 +21,6 @@ var EXPIRATION_MS = 30 * 24 * 3600 * 1000; // 30 jours
    localStorage.removeItem('mrt_access_granted_at');
    if(isAdmin) localStorage.setItem('mrt_is_admin_device', '1');
    localStorage.setItem('mrt_access_version', ACCESS_VERSION);
-   console.log('[ACCESS] Version mise à jour — anciens accès invalidés');
   }
  } catch(e){}
 })();
@@ -60,12 +59,7 @@ function isAdminDevice(){
 function isAccessExpired(){
  var grantedAt = parseInt(localStorage.getItem('mrt_access_granted_at') || '0');
  if(!grantedAt) return true;
- var now = Date.now();
- var expired = (now - grantedAt) > EXPIRATION_MS;
- if(expired){
-  console.log('[ACCESS] Accès expiré — ' + Math.floor((now - grantedAt) / 86400000) + ' jours');
- }
- return expired;
+ return (Date.now() - grantedAt) > EXPIRATION_MS;
 }
 
 function refreshAccessTimestamp(){
@@ -113,34 +107,35 @@ function hideScreen(){
 
 var clean = function(s){ return String(s||'').replace(/['"<>]/g,''); };
 
+/* Écran de verrouillage : demande d'accès OU admin */
 function requestHTML(err){
  return '<div style="display:flex;justify-content:flex-end"><button class="ghost" onclick="__adminFromAccess()">🔐 Admin</button></div>' +
   '<h3>🔐 Accès requis</h3>' +
-  '<p class="muted">Cette application est protégée. <b>Tous les accès expirent automatiquement après 1 mois</b> — envoyez une demande d\u2019accès.</p>' +
+  '<p class="muted"><b>L\u2019application est verrouillée.</b><br>• <b>Tiers</b> : envoyez une demande d\u2019accès (valable 1 mois après autorisation).<br>• <b>Admin</b> : cliquez sur 🔐 et entrez votre mot de passe.</p>' +
   (err||'') +
-  '<input id="arName" placeholder="Votre nom / garage">' +
-  '<div class="actions"><button class="primary" onclick="__sendRequest()">📨 Demander l\u2019accès</button></div>';
+  '<input id="arName" placeholder="Votre nom / garage (tiers)">' +
+  '<div class="actions"><button class="primary" onclick="__sendRequest()">📨 Demander l\u2019accès (tiers)</button></div>';
 }
 
 function pendingHTML(d){
  return '<div style="display:flex;justify-content:flex-end"><button class="ghost" onclick="__adminFromAccess()">🔐 Admin</button></div>' +
   '<h3>⏳ Demande en attente</h3>' +
-  '<p class="muted">Bonjour '+(clean(d&&d.name)||'')+', votre demande a été envoyée. L\u2019app se déverrouillera automatiquement dès autorisation.</p>' +
+  '<p class="muted">Bonjour '+(clean(d&&d.name)||'')+', votre demande a été envoyée à l\u2019administrateur. L\u2019app se déverrouillera automatiquement dès autorisation.</p>' +
   '<div class="actions"><button onclick="__recheck()">🔄 Vérifier maintenant</button></div>';
 }
 
 function deniedHTML(){
  return '<div style="display:flex;justify-content:flex-end"><button class="ghost" onclick="__adminFromAccess()">🔐 Admin</button></div>' +
   '<h3>🚫 Accès refusé ou révoqué</h3>' +
-  '<p class="muted">L\u2019administrateur a refusé ou révoqué votre accès. Vous devez refaire une demande.</p>' +
+  '<p class="muted">L\u2019administrateur a refusé ou révoqué votre accès.</p>' +
   '<div class="actions"><button onclick="__reask()">📨 Redemander</button></div>';
 }
 
 function expiredHTML(){
- var daysAgo = Math.floor((Date.now() - parseInt(localStorage.getItem('mrt_access_granted_at') || '0')) / 86400000);
+ var days = Math.floor((Date.now() - parseInt(localStorage.getItem('mrt_access_granted_at') || '0')) / 86400000);
  return '<div style="display:flex;justify-content:flex-end"><button class="ghost" onclick="__adminFromAccess()">🔐 Admin</button></div>' +
-  '<h3>⏰ Accès expiré</h3>' +
-  '<p class="muted">Votre accès a expiré après '+daysAgo+' jours. Les accès sont valables 1 mois maximum pour des raisons de sécurité. Vous devez refaire une demande.</p>' +
+  '<h3>⏰ Accès expiré ('+days+' jours)</h3>' +
+  '<p class="muted">Votre accès a expiré (valable 1 mois). Vous devez refaire une demande.</p>' +
   '<div class="actions"><button onclick="__reask()">📨 Renouveler l\u2019accès</button></div>';
 }
 
@@ -192,18 +187,20 @@ async function notifyAdmin(name){
    await fetch('https://fcm.googleapis.com/fcm/send',{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'key='+FIREBASE_CONFIG.serverKey},
-    body: JSON.stringify({
-     to: token,
-     notification: {title:'Demande d\u2019accès', body: name + ' demande l\u2019accès'}
-    })
+    body: JSON.stringify({to: token, notification: {title:'Demande d\u2019accès', body: name + ' demande l\u2019accès'}})
    });
   }
  } catch(e){}
 }
 
-/* === VÉRIFICATION FORCÉE === */
+/* === VÉRIFICATION FORCÉE (verrouillage strict) === */
 window.checkAccess = async function(silent){
- if(!ENABLED) return true;
+ if(!ENABLED){
+  /* Firebase non configuré : verrouiller quand même (admin uniquement) */
+  if(isAdminDevice()){ hideScreen(); return true; }
+  screen(requestHTML('<p style="color:var(--warn)">⚠️ Firebase non configuré — seul l\u2019admin peut accéder.</p>'));
+  return false;
+ }
 
  /* Admin : accès permanent */
  if(isAdminDevice()){
@@ -227,12 +224,10 @@ window.checkAccess = async function(silent){
   if(doc.exists){
    var d = doc.data();
    if(d.active !== false){
-    /* Autorisé dans Firestore : refresh timestamp */
     refreshAccessTimestamp();
     hideScreen();
     return true;
    }
-   /* Révoqué */
    localStorage.removeItem('mrt_access');
    localStorage.removeItem('mrt_access_granted_at');
    screen(deniedHTML());
@@ -267,22 +262,18 @@ window.checkAccess = async function(silent){
 
 /* === GARDE : vérification toutes les 30s === */
 window.startAccessGuard = function(){
- if(!ENABLED || window.__guard) return;
+ if(window.__guard) return;
  window.__guard = 1;
  window.ACCESS_GUARD = 1;
  
  setInterval(async function(){
   if(document.hidden || isAdminDevice()) return;
-  
-  /* Vérifier expiration locale */
   if(isAccessExpired()){
    localStorage.removeItem('mrt_access');
    localStorage.removeItem('mrt_access_granted_at');
    screen(expiredHTML());
    return;
   }
-  
-  /* Vérifier Firestore */
   await window.checkAccess(true);
  }, 30000);
 };
@@ -332,7 +323,7 @@ window.renderAccessAdmin = async function(){
  var box = document.getElementById('accessAdminBox');
  if(!box) return;
  if(!ENABLED){
-  box.innerHTML = '<p class="muted"><b>Contrôle d\u2019accès désactivé</b> (Firebase non configuré).</p>';
+  box.innerHTML = '<p class="muted"><b>Firebase non configuré</b> — seul l\u2019admin peut accéder. Ajoutez votre clé pour activer les demandes tiers.</p>';
   return;
  }
  try {
