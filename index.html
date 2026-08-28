@@ -1,146 +1,789 @@
-/* === GÉNÉRATION MASSIVE DE FICHES (21 000+) === */
-function buildAllSheets(models, engines){
- var out = [], seen = new Set();
- 
- var push = function(b, m, e, cat, titre, sym, dtc, fix, src, off){
-  var id = 'g' + h([b, m, e || '', titre].join('|'));
-  if(seen.has(id)) return;
-  seen.add(id);
-  out.push({id, b, m, e: e || '', cat, titre, sym, dtc, fix, src, off: off ? 1 : 0});
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mon Aide Technique by Kevin</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b1220">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<link rel="icon" href="icon.svg">
+<style>
+:root{--bg:#0b1220;--card:#131e33;--card2:#1a2742;--acc:#3aa0ff;--acc2:#22d3a5;--txt:#eaf2ff;--mut:#93a4c3;--warn:#ffb020;--danger:#ff5d5d;--rad:14px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+#bg{position:fixed;inset:0;z-index:0;opacity:.8;pointer-events:none;background-size:cover;background-position:center 60%}
+#bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,18,32,.35),rgba(11,18,32,.75))}
+#bg svg{width:100%;height:100%}
+#app{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:12px 14px 90px}
+header{display:flex;align-items:center;gap:10px;padding:8px 2px;flex-wrap:wrap}
+.logo{font-size:26px}
+h1{font-size:17px;line-height:1.1}
+h1 small{display:block;color:var(--mut);font-size:11px;font-weight:400}
+.spacer{flex:1}
+.badge{font-size:11px;padding:4px 10px;border-radius:99px;background:var(--card2);border:1px solid #2c3e63;color:var(--mut)}
+.badge.on{color:var(--acc2);border-color:var(--acc2)}
+.badge.off{color:var(--warn);border-color:var(--warn)}
+button{font:inherit;color:var(--txt);background:var(--card2);border:1px solid #2c3e63;border-radius:10px;padding:9px 13px;cursor:pointer}
+button:active{transform:scale(.97)}
+button.primary{background:linear-gradient(135deg,#1d6fd1,#3aa0ff);border:none;font-weight:600}
+button.ai{background:linear-gradient(135deg,#7c3aed,#ec4899);border:none;font-weight:600}
+button.ghost{background:transparent}
+a.chip{display:inline-block;text-decoration:none;padding:7px 14px;border-radius:99px;background:var(--card);border:1px solid #2c3e63;color:var(--mut);cursor:pointer;font-size:13px;margin:2px}
+input,select,textarea{font:inherit;color:var(--txt);background:#0e1830;border:1px solid #2c3e63;border-radius:10px;padding:9px;width:100%}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0}
+.chip{white-space:nowrap;padding:7px 14px;border-radius:99px;background:var(--card);border:1px solid #2c3e63;color:var(--mut);cursor:pointer;font-size:13px}
+.chip.active{background:linear-gradient(135deg,#1d6fd1,#3aa0ff);color:#fff;border-color:transparent;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px;margin:8px 0}
+.brandBtn{display:flex;flex-direction:column;gap:3px;text-align:left;padding:11px;border-radius:var(--rad);background:var(--card);border:1px solid #26375c}
+.brandBtn b{font-size:14px}
+.brandBtn span{font-size:11px;color:var(--mut)}
+.drawer{background:rgba(19,30,51,.92);border:1px solid #26375c;border-radius:var(--rad);margin:10px 0;padding:12px;animation:open .25s ease}
+@keyframes open{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.drawer h2{font-size:15px;display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.drawer h2 .back{padding:4px 10px;border-radius:8px;font-size:13px}
+.rowItem{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:11px;border-radius:10px;background:var(--card2);border:1px solid #2c3e63;margin:7px 0;cursor:pointer;flex-wrap:wrap}
+.rowItem b{font-size:14px}
+.rowItem span{font-size:12px;color:var(--mut)}
+.sheet{background:var(--card);border:1px solid #26375c;border-left:4px solid var(--acc);border-radius:10px;margin:8px 0;padding:10px 12px;cursor:pointer;display:grid;gap:3px}
+.sheet>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
+.sheet .l1{display:flex;gap:8px;align-items:center}
+.sheet .l1 b{overflow:hidden;text-overflow:ellipsis;font-size:13.5px}
+.cat{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700;flex-shrink:0}
+.c-Moteur{background:#7c3aed33;color:#c4b5fd}.c-Transmission{background:#0891b233;color:#67e8f9}
+.c-Électronique{background:#d9770633;color:#fcd34d}.c-Électrique{background:#05966933;color:#6ee7b7}
+.c-Airbag{background:#dc262633;color:#fca5a5}.c-Ceinture{background:#9333ea33;color:#d8b4fe}
+.c-ABS{background:#ea580c33;color:#fdba74}.c-ADAS{background:#0284c733;color:#7dd3fc}
+.c-Caméra{background:#4f46e533;color:#a5b4fc}.c-Freinage{background:#b91c1c33;color:#fecaca}
+.src{margin-left:auto;font-size:10px;color:var(--mut);flex-shrink:0}
+.src.off{color:var(--acc2);font-weight:700}
+.modal{position:fixed;inset:0;z-index:50;background:rgba(4,8,18,.8);display:none;align-items:flex-end;justify-content:center}
+.modal.show{display:flex}
+.sheetModal{width:100%;max-width:900px;max-height:92vh;overflow:auto;background:var(--bg);border-radius:18px 18px 0 0;border-top:1px solid #2c3e63;padding:18px}
+.sheetModal h3{font-size:17px;margin:6px 0 12px}
+.detail{background:var(--card);border-radius:10px;padding:12px;margin:8px 0;font-size:14px;line-height:1.5}
+.detail small{color:var(--mut);display:block;margin-bottom:4px;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.adminTabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.adminSec{display:none}.adminSec.show{display:block}
+.stat{display:inline-block;background:var(--card2);border-radius:10px;padding:8px 12px;margin:4px;font-size:12px}
+.stat b{display:block;font-size:18px;color:var(--acc)}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#0e1830;border:1px solid var(--acc);border-radius:99px;padding:10px 20px;font-size:13px;z-index:99;display:none;max-width:90vw}
+footer{margin-top:30px;text-align:center;color:var(--mut);font-size:11px;line-height:1.7}
+.muted{color:var(--mut);font-size:12px}
+hr{border:none;border-top:1px solid #26375c;margin:12px 0}
+#printSheet{display:none}
+.syncRow{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.syncRow button{flex:1;min-width:120px}
+@media print{body>*{display:none!important}#printSheet{display:block!important;color:#000;font-size:13px}#printSheet h1{font-size:18px}#printSheet .box{border:1px solid #000;padding:10px;margin:8px 0;border-radius:6px}}
+</style>
+</head>
+<body>
+
+<div id="bg" aria-hidden="true">
+<svg viewBox="0 0 1200 600" preserveAspectRatio="xMidYMax slice">
+ <defs>
+  <linearGradient id="bodyG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#13233f"/></linearGradient>
+  <linearGradient id="winG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe3ff"/><stop offset="1" stop-color="#4a7db5"/></linearGradient>
+ </defs>
+ <path fill="url(#bodyG)" d="M60,430 L148,430 A72,72 0 0 1 292,430 L818,430 A72,72 0 0 1 962,430 L1120,430 C1152,430 1168,410 1162,384 C1152,342 1098,312 1008,298 C938,218 828,172 660,167 C518,164 398,198 318,278 C208,288 118,328 78,378 C58,400 54,430 60,430 Z"/>
+ <path fill="url(#winG)" opacity=".85" d="M360,283 C432,218 532,193 652,192 L657,283 Z"/>
+ <path fill="url(#winG)" opacity=".85" d="M677,192 C782,197 862,233 922,288 L682,288 Z"/>
+ <rect x="1090" y="330" width="60" height="10" rx="5" fill="#9fd3ff"/>
+ <rect x="70" y="352" width="46" height="9" rx="4" fill="#ff6b6b" opacity=".9"/>
+ <g fill="#0a0f1c"><circle cx="220" cy="430" r="62"/><circle cx="890" cy="430" r="62"/></g>
+ <g fill="#22355c"><circle cx="220" cy="430" r="34"/><circle cx="890" cy="430" r="34"/></g>
+ <g stroke="#0a0f1c" stroke-width="6"><g><line x1="220" y1="400" x2="220" y2="460"/><line x1="190" y1="430" x2="250" y2="430"/><line x1="199" y1="409" x2="241" y2="451"/><line x1="241" y1="409" x2="199" y2="451"/></g>
+ <g><line x1="890" y1="400" x2="890" y2="460"/><line x1="860" y1="430" x2="920" y2="430"/><line x1="869" y1="409" x2="911" y2="451"/><line x1="911" y1="409" x2="869" y2="451"/></g></g>
+ <ellipse cx="600" cy="492" rx="520" ry="16" fill="#000" opacity=".35"/>
+</svg>
+</div>
+
+<div id="app">
+ <header>
+  <div class="logo">🔧</div>
+  <h1>Mon Aide Technique <small>by Kevin — diagnostics, rappels &amp; pannes connues</small></h1>
+  <div class="spacer"></div>
+  <span id="netBadge" class="badge">…</span>
+  <button id="btnInstall" style="display:none">⬇️ Installer</button>
+  <button id="btnShare" class="ghost" title="Partager">📤 Partager</button>
+  <button id="btnAdmin" class="ghost" title="Admin">🔐</button>
+ </header>
+
+ <div class="chips" id="groupChips"></div>
+ <input id="globalSearch" placeholder="🤖 Tapez un code (P20EE), un mot-clé (courroie, EGR) ou modèle (ID4, R5, 3008)…" style="margin-bottom:8px" oninput="if(window.suggestBrandsAndModels)window.suggestBrandsAndModels(this.value)">
+ <div id="brandSuggest" class="drawer" style="display:none"></div>
+ <div class="actions" style="margin:0 0 8px">
+  <button class="primary" onclick="validateSearch()">✅ Valider la recherche</button>
+  <button class="ai" onclick="askAI()">🤖 Analyse IA</button>
+  <button class="ghost" onclick="clearSearchBox()">✕ Effacer</button>
+ </div>
+ <div id="dtcSuggest" class="drawer" style="display:none"></div>
+ <div id="aiResult" class="drawer" style="display:none"></div>
+
+ <div class="drawer" style="margin:8px 0">
+  <h2>🔎 Recherche DTC ciblée</h2>
+  <input id="dtcOnly" placeholder="indiquer n°dtc (ex : P0016, P20EE, p20ee)">
+  <div class="actions"><button class="primary" onclick="searchDtcOnly()">🔍 Rechercher le code</button></div>
+  <div id="dtcResult1"></div>
+  <hr>
+  <input id="dtcModel" placeholder="modèle suivi du dtc (ex : 3008 P0016, r5 électrique P1811)" oninput="if(window.suggestModels)window.suggestModels(this.value)">
+  <div id="modelSuggest" class="drawer" style="display:none;margin:4px 0"></div>
+  <div class="actions"><button class="primary" onclick="searchDtcModel()">🔍 Rechercher modèle + DTC</button></div>
+  <div id="dtcResult2"></div>
+ </div>
+
+ <div class="drawer" id="globalDrawer" style="display:none"><h2>🤖 Réponse automatisée &amp; résultats <span id="globalCount" class="muted"></span></h2><div id="globalList"></div></div>
+ <input id="brandSearch" placeholder="🔎 Rechercher une marque ou modèle…" style="margin-bottom:8px" oninput="if(window.suggestBrandsAndModels)window.suggestBrandsAndModels(this.value)">
+ <div class="grid" id="brandGrid"></div>
+
+ <div class="drawer" id="modelsDrawer" style="display:none">
+  <h2><button class="back" onclick="closeDrawer('modelsDrawer')">←</button><span id="modelsTitle"></span></h2>
+  <input id="modelSearch" placeholder="🔎 Filtrer les modèles…">
+  <div id="modelList"></div>
+ </div>
+
+ <div class="drawer" id="enginesDrawer" style="display:none">
+  <h2><button class="back" onclick="closeDrawer('enginesDrawer')">←</button><span id="enginesTitle"></span></h2>
+  <div class="chips" id="fuelChips"></div>
+  <div id="engineList"></div>
+ </div>
+
+ <div class="drawer" id="sheetsDrawer" style="display:none">
+  <h2><button class="back" onclick="closeDrawer('sheetsDrawer')">←</button><span id="sheetsTitle"></span></h2>
+  <div class="chips" id="catChips"></div>
+  <div class="muted" style="margin:6px 0">🛰 Synchronisation officielle — NHTSA · TSB · Rappel Conso · Safety Gate. MàJ auto hebdo.</div>
+  <div class="syncRow">
+   <button onclick="syncNHTSA()">🇺🇸 NHTSA</button>
+   <button onclick="syncTSB()">📋 TSB</button>
+   <button onclick="syncRappelConso()">🇫🇷 Rappel Conso</button>
+   <button onclick="syncSafetyGate()">🇪🇺 Safety Gate</button>
+   <button class="primary" onclick="syncAll()">⚡ Tout</button>
+  </div>
+  <div id="sheetList"></div>
+ </div>
+
+ <footer>
+  Développé &amp; hébergé via <b>GitHub</b> • Sources : NHTSA · Rappel Conso · EU Safety Gate · L'Argus · Baidu<br>
+  🤖 IA Gemini intégrée • 🔐 Accès contrôlé (admin + tiers 1 mois) • ⚠️ Confirmez avec le VIN.<br>
+  © Kevin — Mon Aide Technique
+ </footer>
+</div>
+
+<div class="modal" id="sheetModal"><div class="sheetModal">
+ <div style="display:flex;gap:8px;align-items:center"><button class="ghost" onclick="closeModal('sheetModal')">✕</button><span id="smCat" class="cat"></span><span id="smVeh" class="muted"></span></div>
+ <h3 id="smTitle"></h3>
+ <div class="detail"><small>Symptômes</small><div id="smSym"></div></div>
+ <div class="detail"><small>Codes défaut (DTC)</small><div id="smDtc"></div></div>
+ <div class="detail"><small>Préconisation</small><div id="smFix"></div></div>
+ <div class="detail"><small>Source</small><div id="smSrc"></div></div>
+ <div class="actions">
+  <button class="primary" onclick="printSheet()">📄 Télécharger en PDF</button>
+  <button id="smDel" style="display:none" onclick="deleteCurrentSheet()">🗑 Supprimer (admin)</button>
+ </div>
+</div></div>
+
+<div class="modal" id="adminModal"><div class="sheetModal">
+ <div style="display:flex;gap:8px;align-items:center"><button class="ghost" onclick="closeModal('adminModal')">✕</button><b>Mode administrateur</b></div>
+ <div id="adminGate" style="margin-top:12px">
+  <p class="muted" style="margin-bottom:8px">Mot de passe requis :</p>
+  <input type="password" id="adminPass" placeholder="••••••••" autocomplete="off">
+  <div class="actions"><button class="primary" onclick="tryAdmin()">Déverrouiller</button></div>
+ </div>
+ <div id="adminPanel" style="display:none;margin-top:12px">
+  <div class="adminTabs">
+   <button class="chip active" onclick="adminTab(this,'tabStats')">📊 Base &amp; auto-tests</button>
+   <button class="chip" onclick="adminTab(this,'tabAccess')">👥 Accès tiers</button>
+   <button class="chip" onclick="adminTab(this,'tabAdd')">➕ Ajouter</button>
+   <button class="chip" onclick="adminTab(this,'tabImport')">📥 Import/Export</button>
+   <button class="chip" onclick="adminTab(this,'tabApp')">🎨 Apparence</button>
+  </div>
+  <div class="adminSec show" id="tabStats">
+   <div id="statsBox"></div><hr>
+   <p class="muted">Auto-tests : bouton admin, mdp masqué, fond 80%, accès tiers Firebase, IA Gemini, base DTC.</p>
+   <div class="actions"><button class="primary" onclick="autoUpdate(true)">🔄 Forcer MàJ</button><button onclick="clearWatchlist()">🗑 Vider suivi</button><button onclick="weeklyVerification()">🔍 Vérification hebdo</button></div>
+   <div class="actions"><button onclick="resetBase()">♻️ Régénérer base</button><button onclick="clearOfficial()">🗑 Effacer officielles</button></div>
+  </div>
+  <div class="adminSec" id="tabAccess"><div id="accessAdminBox"><p class="muted">Chargement…</p></div></div>
+  <div class="adminSec" id="tabAdd">
+   <h3>➕ Marque</h3>
+   <div style="display:flex;gap:8px;margin:8px 0"><input id="nbName" placeholder="Nom" style="flex:2"><select id="nbOrigin" style="flex:1"><option value="FR">FR</option><option value="EU">EU</option><option value="AS">AS</option><option value="US">US</option></select><button class="primary" onclick="addBrand()">OK</button></div>
+   <h3>➕ Modèle</h3>
+   <div style="display:flex;gap:8px;margin:8px 0"><select id="nmBrand" style="flex:1"></select><input id="nmName" placeholder="Nom modèle" style="flex:1"><button class="primary" onclick="addModel()">OK</button></div>
+   <h3>➕ Motorisation</h3>
+   <div style="display:flex;gap:8px;margin:8px 0;flex-wrap:wrap"><select id="neBrand" onchange="fillModelSelect('neBrand','neModel')" style="min-width:130px"></select><select id="neModel" style="min-width:130px"></select><input id="neLabel" placeholder="Ex : 2.0 TDI 150" style="min-width:170px;flex:1"><select id="neFuel"><option>essence</option><option>diesel</option><option>flexfuel</option><option>hybride</option><option>hybride rechargeable</option><option>électrique</option><option>GPL</option><option>hydrogène</option></select><button class="primary" onclick="addEngine()">OK</button></div>
+   <h3>➕ Fiche</h3>
+   <div style="display:grid;gap:8px;margin:8px 0">
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><select id="nfBrand" onchange="fillModelSelect('nfBrand','nfModel')" style="min-width:130px"></select><select id="nfModel" onchange="fillEngineSelect()" style="min-width:130px"></select><select id="nfEngine" style="min-width:170px"><option value="">(toutes)</option></select><select id="nfCat"><option>Moteur</option><option>Transmission</option><option>Électronique</option><option>Électrique</option><option>Airbag</option><option>Ceinture</option><option>ABS</option><option>ADAS</option><option>Caméra</option><option>Freinage</option></select></div>
+    <input id="nfTitle" placeholder="Titre"><textarea id="nfSym" rows="2" placeholder="Symptômes"></textarea><input id="nfDtc" placeholder="DTC (virgules)"><textarea id="nfFix" rows="2" placeholder="Préconisation"></textarea><input id="nfSrc" placeholder="Source">
+    <button class="primary" onclick="addSheet()">Enregistrer</button>
+   </div>
+  </div>
+  <div class="adminSec" id="tabImport">
+   <h3>📥 Import JSON</h3><input type="file" id="importFile" accept=".json" style="margin:8px 0"><button class="primary" onclick="doImport()">Importer</button>
+   <hr><h3>📤 Export</h3><div class="actions"><button onclick="exportAll()">⬇️ Exporter toute la base</button></div>
+  </div>
+  <div class="adminSec" id="tabApp">
+   <h3>🖼 Fond d'écran (80%)</h3><input type="file" id="bgFile" accept="image/*" style="margin:8px 0"><div class="actions"><button onclick="resetBg()">↩️ Défaut</button></div>
+  </div>
+ </div>
+</div></div>
+
+<div id="toast"></div>
+<div id="printSheet"></div>
+
+<!-- ⚠️ IMPORTANT : tous les scripts externes AVANT le code principal -->
+<script src="dtc-db.js"></script>
+<script src="search-sources.js"></script>
+<script src="known-issues.js"></script>
+<script src="assistant.js"></script>
+<script src="access.js"></script>
+
+<script>
+'use strict';
+const ADMIN_PASS=atob('S2V2aW44MzYwMA==');
+const APP_VERSION='v25_scripts_order';
+const DB_NAME='mrt_db', DB_VER=1, SEED_FLAG='mrt_seeded_v12';
+const WEEK_MS=7*24*3600*1000, WATCH_MAX=20, AUTO_BATCH=8;
+const ORIGINS={FR:'🇫🇷 Françaises',EU:'🇪🇺 Européennes',AS:'🌏 Asiatiques',US:'🇺🇸 Américaines'};
+const CATS=['Tous','Moteur','Transmission','Électronique','Électrique','Airbag','Ceinture','ABS','ADAS','Caméra','Freinage'];
+const FUELS=['Tous','essence','diesel','flexfuel','hybride','hybride rechargeable','électrique','GPL','hydrogène'];
+
+/* === FALLBACK DTC intégré (garantit P20EE même si dtc-db.js absent) === */
+(function(){
+ if(window.extractDtc) return; /* dtc-db.js déjà chargé */
+ var FD={
+  'P0016':['Corrélation vilo/AAC admission','Distribution décalée, capteur, VVT','Contrôle calage, capteurs, phasers'],
+  'P0087':['Pression rail basse','Pompe HP, filtre, limaille','Contrôle pression, pompe, rinçage'],
+  'P0299':['Pression turbo basse','Fuite, wastegate, turbo, EGR','Contrôle durites/wastegate/turbo'],
+  'P0300':['Ratés multiples','Bobines, bougies, injecteurs','Bobines/bougies, compressions'],
+  'P0401':['EGR débit insuffisant','Vanne encrassée','Nettoie/remplace EGR'],
+  'P0420':['Catalyseur efficacité (b1)','Catalyseur, sondes','Contrôle sondes + cata'],
+  'P0700':['Calculateur boîte défaut','Mécatronique','Diagnostic boîte, MAJ'],
+  'P0776':['Électrovanne pression B','Mécatronique DSG/EAT','Vidange + mécatro'],
+  'P17BF':['Mécatronique DSG (VAG)','Mécatronique DQ200','MAJ + mécatro'],
+  'P1811':['Sélection vitesse impossible (N bloqué)','ECU transmission, capteur','Fermer véhicule, attendre extinction voyants ou MAJ concession'],
+  'P2002':['FAP efficacité basse','FAP colmaté','Régénération, contrôle FAP'],
+  'P202E':['AdBlue : injection faible','Injecteur bouché, pompe, cristallisation','Contrôle injecteur + pompe AdBlue, rinçage circuit'],
+  'P204D':['AdBlue : qualité/capteur','AdBlue contaminé, capteur NOx amont','Contrôle qualité AdBlue + capteur NOx'],
+  'P207F':['AdBlue : qualité réservoir','AdBlue contaminé, cristallisation','Vidange/remplissage AdBlue neuf'],
+  'P20BA':['AdBlue : chauffe injecteur','Résistance chauffe, injecteur, câblage','Contrôle injecteur AdBlue + résistance chauffe'],
+  'P20EE':['Rendement catalyseur SCR insuffisant pour traiter les NOx','Catalyseur SCR dégradé, qualité AdBlue contaminée, injecteur AdBlue bouché/cristallisé, capteur NOx amont/aval défaillant, fuite échappement avant SCR, température SCR insuffisante','Diagnostic complet : 1) Qualité AdBlue (réfractométrie) 2) Test injecteur AdBlue (débit/pulvérisation) 3) Capteurs NOx amont/aval 4) Contrôle température SCR 5) Catalyseur SCR 6) Fuites échappement'],
+  'P2200':['NOx capteur circuit (b1)','Capteur NOx amont, câblage','Contrôle capteur NOx + faisceau'],
+  'P242F':['FAP restriction suie','FAP colmaté','Régénération forcée/remplacement'],
+  'P2463':['FAP suie excessive','Régénérations incomplètes','Régénération, entretien'],
+  'C0035':['Capteur roue AV G','Capteur/câblage','Remplace capteur'],
+  'C1103':['Radar AV Front Assist','Radar sali/décalé','Nettoie/calibre radar'],
+  'B0001':['Airbag conducteur circuit','Clockspring, coussin','Diagnostic SRS'],
+  'B1000':['Calculateur airbag','Calculateur, clockspring','Diagnostic SRS'],
+  'U0100':['Perte communication ECM','CAN moteur','Contrôle module moteur'],
+  'U0155':['Perte communication multimédia','Head unit','MAJ/remplacement head unit'],
+  'U1233':['Écran multimédia reboot','Software instable','MAJ firmware, reset usine'],
+  'P0A80':['Batterie HT à remplacer','Modules déséquilibrés, SOH faible','Diagnostic modules, équilibrage, remplacement'],
+  'P0A93':['Refroidissement onduleur pompe','Pompe HS','Remplace pompe'],
+  'P0AA6':['Isolement batterie HT','Câbles/pack, fuite diélectrique','Diagnostic HV agréé uniquement'],
+  'P0C78':['Convertisseur DC/DC défaillant','DC-DC, charge 12V','Contrôle/remplace DC-DC'],
+  'P0D16':['Charge HT circuit pilote','Câble/borne','Contrôle câble + borne'],
+  'P1E00':['Défaut charge VE (OBC)','OBC, câble, borne','Contrôle OBC/prise']
  };
- 
- /* 1. Fiches SEED de base */
- SEED_SHEETS.forEach(function(s){
-  push(s.b, s.m, s.e || '', s.cat, s.titre, s.sym, s.dtc, s.fix, s.src, s.off);
- });
- 
- /* 2. Pannes familiales (FAM) par motorisation */
- engines.forEach(function(x){
-  var fam = FAM.filter(function(r){
-   return (!r.brands.length || r.brands.indexOf(x.b) !== -1) && 
-          (r.re.test(x.e) || r.re.test(x.m));
-  });
-  fam.forEach(function(r){
-   push(x.b, x.m, x.e, r.cat, r.t, r.s, r.d, r.f, r.src);
-  });
- });
- 
- /* 3. Pannes typiques par type de motorisation */
- engines.forEach(function(x){
-  var T = x.fuel === 'diesel' ? T_D : 
-          x.fuel === 'essence' ? T_E : 
-          (x.fuel === 'électrique') ? T_EV : 
-          (x.fuel === 'hybride' || x.fuel === 'hybride rechargeable') ? T_HY : T_E;
-  T.forEach(function(arr){
-   push(x.b, x.m, x.e, arr[5], arr[0], arr[1], arr[2], arr[3], arr[4]);
-  });
- });
- 
- /* 4. Pannes génériques par modèle */
- models.forEach(function(x){
-  T_M.forEach(function(arr){
-   push(x.b, x.m, '', arr[5], arr[0], arr[1], arr[2], arr[3], arr[4]);
-  });
- });
- 
- /* 5. NOUVEAU : Pannes connues de known-issues.js pour tous les modèles */
- if(window.getKnownIssues){
-  models.forEach(function(m){
-   var issues = window.getKnownIssues(m.b, m.m);
-   if(issues && issues.length){
-    issues.forEach(function(iss){
-     /* iss = [symptôme, causes, action, dtc, source] */
-     var titre = m.m + ' : ' + iss[0];
-     push(m.b, m.m, '', classifyOfficial(iss[0] + ' ' + iss[1]), titre, iss[0], iss[3] || [], iss[2], iss[4] || 'Panne connue');
-    });
-   }
-  });
- }
- 
- /* 6. NOUVEAU : Générer des variantes par motorisation pour chaque panne connue */
- engines.forEach(function(eng){
-  var issues = window.getKnownIssues ? window.getKnownIssues(eng.b, eng.m) : [];
-  if(issues && issues.length){
-   issues.forEach(function(iss){
-    var titre = eng.m + ' ' + eng.e + ' : ' + iss[0];
-    push(eng.b, eng.m, eng.e, classifyOfficial(iss[0] + ' ' + iss[1]), titre, iss[0] + ' (motorisation ' + eng.e + ')', iss[3] || [], iss[2] + ' (spécifique ' + eng.e + ')', iss[4] || 'Panne connue');
-   });
-  }
- });
- 
- /* 7. NOUVEAU : Campagnes de rappel par famille de moteurs */
- var RECALL_CAMPAIGNS = [
-  {re:/PureTech|VTi/i, brands:['Peugeot','Citroën','DS Automobiles','Opel'], titre:'Campagne courroie distribution immergée', sym:'Risque casse moteur', fix:'Remplacement courroie + crépine + huile 0W20', src:'Campagne Stellantis'},
-  {re:/1\.5 BlueHDi/i, brands:['Peugeot','Citroën','DS Automobiles','Opel'], titre:'Campagne chaîne distribution DV5', sym:'Bruit métallique, risque casse', fix:'Kit chaîne renforcée', src:'Campagne Stellantis'},
-  {re:/1\.2 TCe/i, brands:['Renault','Dacia'], titre:'Campagne consommation huile H5Ft', sym:'Consommation excessive', fix:'Contrôle + remplacement si nécessaire', src:'Campagne Renault'},
-  {re:/K9K|1\.5 dCi/i, brands:['Renault','Dacia','Nissan'], titre:'Campagne injecteurs/pompe HP', sym:'Limaille circuit HP', fix:'Rinçage + pompe HP + injecteurs', src:'Campagne Renault/Nissan'},
-  {re:/TSI|TDI/i, brands:['Volkswagen','Škoda','SEAT','CUPRA','Audi'], titre:'Campagne DSG DQ200/DQ381', sym:'À-coups, patinage', fix:'MAJ logiciel + vidange mécatronique', src:'Campagne VAG'},
-  {re:/N47|B47/i, brands:['BMW'], titre:'Campagne chaîne distribution', sym:'Risque casse chaîne', fix:'Kit chaîne renforcé', src:'Rappel BMW'},
-  {re:/OM651/i, brands:['Mercedes-Benz'], titre:'Campagne chaîne distribution', sym:'Risque casse chaîne', fix:'Kit chaîne renforcé', src:'Rappel Mercedes'},
-  {re:/Theta II/i, brands:['Hyundai','Kia'], titre:'Campagne coussinets bielle', sym:'Risque serrage moteur', fix:'Contrôle KSDS + remplacement moteur', src:'NHTSA 20V-416'},
-  {re:/Takata/i, brands:[], titre:'Campagne airbag Takata', sym:'Risque projection éclats', fix:'Remplacement gonfleur', src:'NHTSA/Safety Gate'}
- ];
- 
- engines.forEach(function(eng){
-  RECALL_CAMPAIGNS.forEach(function(camp){
-   if((!camp.brands.length || camp.brands.indexOf(eng.b) !== -1) && camp.re.test(eng.e)){
-    push(eng.b, eng.m, eng.e, 'Moteur', camp.titre + ' (' + eng.e + ')', camp.sym, [], camp.fix, camp.src, 1);
-   }
-  });
- });
- 
- /* 8. NOUVEAU : Pannes VE spécifiques par modèle */
- var EV_ISSUES = [
-  {sym:'Batterie HT : déséquilibre cellules', fix:'Équilibrage modules, MAJ BMS, rapport SOH', dtc:['P0A80']},
-  {sym:'Charge DC : limitation puissance', fix:'Préconditionnement, contrôle thermique pack', dtc:['Codes HV']},
-  {sym:'OBC : charge AC lente/intermittente', fix:'Contrôle OBC, câblage, MAJ calculateur', dtc:['P1E00']},
-  {sym:'Pompe refroidissement HT', fix:'Contrôle pompe, liquide, remplacement si HS', dtc:['P0A93']},
-  {sym:'BMS : erreur communication', fix:'Diagnostic BMS, reset, MAJ firmware', dtc:['P0A1F']}
- ];
- 
- engines.forEach(function(eng){
-  if(eng.fuel === 'électrique' || eng.fuel === 'hybride rechargeable'){
-   EV_ISSUES.forEach(function(ev){
-    push(eng.b, eng.m, eng.e, 'Électrique', eng.m + ' ' + eng.e + ' : ' + ev.sym, ev.sym, ev.dtc, ev.fix, 'Panne VE');
-   });
-  }
- });
- 
- /* 9. NOUVEAU : Pannes diesel modernes par modèle */
- var DIESEL_ISSUES = [
-  {sym:'Vanne EGR encrassée', fix:'Nettoyage/remplacement EGR + refroidisseur', dtc:['P0401','P0402']},
-  {sym:'FAP colmaté', fix:'Régénération forcée, contrôle capteurs pression', dtc:['P2002','P242F']},
-  {sym:'AdBlue : injecteur cristallisé', fix:'Remplacement injecteur + rinçage circuit', dtc:['P20EE','P202E']},
-  {sym:'AdBlue : qualité contaminée', fix:'Vidange + remplissage AdBlue neuf', dtc:['P207F']},
-  {sym:'Capteur NOx défaillant', fix:'Remplacement capteur NOx amont/aval', dtc:['P2200','P2201']},
-  {sym:'Turbo : wastegate grippée', fix:'Contrôle wastegate, actuateur, turbo', dtc:['P0299','P00AF']}
- ];
- 
- engines.forEach(function(eng){
-  if(eng.fuel === 'diesel'){
-   DIESEL_ISSUES.forEach(function(d){
-    push(eng.b, eng.m, eng.e, 'Moteur', eng.m + ' ' + eng.e + ' : ' + d.sym, d.sym, d.dtc, d.fix, 'Panne diesel');
-   });
-  }
- });
- 
- /* 10. NOUVEAU : Pannes essence modernes par modèle */
- var PETROL_ISSUES = [
-  {sym:'Bobines allumage : ratés', fix:'Remplacement bobines + bougies', dtc:['P0300','P0301']},
-  {sym:'Injecteurs encrassés', fix:'Nettoyage injecteurs + additif', dtc:['P0171','P0200']},
-  {sym:'Débitmètre MAF défaillant', fix:'Nettoyage/remplacement MAF', dtc:['P0100','P0101']},
-  {sym:'Chaîne distribution détendue', fix:'Kit chaîne renforcé + tendeurs', dtc:['P0016']},
-  {sym:'Turbo : actuateur HS', fix:'Remplacement actuateur turbo', dtc:['P00AF']}
- ];
- 
- engines.forEach(function(eng){
-  if(eng.fuel === 'essence'){
-   PETROL_ISSUES.forEach(function(p){
-    push(eng.b, eng.m, eng.e, 'Moteur', eng.m + ' ' + eng.e + ' : ' + p.sym, p.sym, p.dtc, p.fix, 'Panne essence');
-   });
-  }
- });
- 
- console.log('[buildAllSheets] Total fiches générées :', out.length);
+ window.extractDtc=function(t){
+  if(!t)return[];
+  var r=[],seen={},up=String(t).toUpperCase(),m,re=/[PCBU][0-9A-F]{4,5}/g;
+  while((m=re.exec(up))!==null){var c=m[0];if(c.length===5&&!seen[c]){seen[c]=1;r.push(c);}}
+  return r;
+ };
+ window.dtcInfo=function(c){return c?FD[String(c).toUpperCase().trim()]||null:null;};
+ window.dtcSuggest=function(q,lim){if(!q)return[];q=String(q).toUpperCase().replace(/\s+/g,'');var o=[];for(var k in FD){if(k.indexOf(q)>-1){o.push({code:k,label:FD[k][0]});if(o.length>=lim)break;}}return o;};
+ window.dtcSystem=function(c){if(!c)return'Autre';c=String(c).toUpperCase();if(/^P0[0-3]/.test(c))return'Moteur';if(/^P20|^P22|^P24/.test(c))return'Dépollution';if(/^P0[7-9]/.test(c))return'Boîte';if(/^C0[0-2]/.test(c)||/^C1[0-4]/.test(c))return'ABS';if(/^B00/.test(c))return'Airbag';if(/^U0[12]/.test(c))return'Réseau';if(/^P0[A-F]/.test(c))return'HT';return'Autre';};
+ window.DTC_COUNT=Object.keys(FD).length;
+ console.log('[FALLBACK DTC] chargé — P20EE garanti');
+})();
+
+/* === DONNÉES SEED (conservées) === */
+const SEED_BRANDS=[['Renault','FR'],['Peugeot','FR'],['Citroën','FR'],['DS Automobiles','FR'],['Alpine','FR'],['Bugatti','FR'],['Aixam','FR'],['Ligier','FR'],['Microcar','FR'],['Bolloré','FR'],['Volkswagen','EU'],['Audi','EU'],['BMW','EU'],['Mercedes-Benz','EU'],['Opel','EU'],['Porsche','EU'],['SEAT','EU'],['CUPRA','EU'],['Škoda','EU'],['Fiat','EU'],['Alfa Romeo','EU'],['Lancia','EU'],['Maserati','EU'],['Ferrari','EU'],['Lamborghini','EU'],['Dacia','EU'],['Volvo','EU'],['Polestar','EU'],['Saab','EU'],['Jaguar','EU'],['Land Rover','EU'],['MINI','EU'],['Bentley','EU'],['Rolls-Royce','EU'],['Aston Martin','EU'],['McLaren','EU'],['Lotus','EU'],['Smart','EU'],['Ineos','EU'],['Toyota','AS'],['Lexus','AS'],['Honda','AS'],['Nissan','AS'],['Mazda','AS'],['Subaru','AS'],['Suzuki','AS'],['Mitsubishi','AS'],['Hyundai','AS'],['Kia','AS'],['Genesis','AS'],['SsangYong','AS'],['Infiniti','AS'],['Daihatsu','AS'],['Isuzu','AS'],['BYD','AS'],['MG','AS'],['NIO','AS'],['XPeng','AS'],['Geely','AS'],['Tata','AS'],['Mahindra','AS'],['VinFast','AS'],['Acura','AS'],['Li Auto','AS'],['Zeekr','AS'],['Leapmotor','AS'],['Chery','AS'],['Omoda','AS'],['Jaecoo','AS'],['Exeed','AS'],['Changan','AS'],['Deepal','AS'],['Avatr','AS'],['Geely Galaxy','AS'],['Lynk & Co','AS'],['Geometry','AS'],['Radar','AS'],['Livan','AS'],['Great Wall','AS'],['Haval','AS'],['Ora','AS'],['Tank','AS'],['Wey','AS'],['Voyah','AS'],['Hongqi','AS'],['Bestune','AS'],['Maxus','AS'],['SAIC','AS'],['Roewe','AS'],['Aiways','AS'],['Enovate','AS'],['Weltmeister','AS'],['Seres','AS'],['Aion','AS'],['Forthing','AS'],['BAIC','AS'],['Beijing','AS'],['JAC','AS'],['Soueast','AS'],['Dongfeng','AS'],['DFSK','AS'],['FAW','AS'],['SWM','AS'],['Jetour','AS'],['Kaiyi','AS'],['Hozon','AS'],['Neta','AS'],['IM Motors','AS'],['Arcfox','AS'],['Luxgen','AS'],['Xiaomi Auto','AS'],['Baidu Jiyue','AS'],['AITO','AS'],['Denza','AS'],['Yangwang','AS'],['Fangchengbao','AS'],['Skyworth','AS'],['Hengchi','AS'],['Kandi','AS'],['Zotye','AS'],['Qoros','AS'],['Haima','AS'],['Borgward','AS'],['Qiantu','AS'],['Hycan','AS'],['Singulato','AS'],['WM Motor','AS'],['Zhiji Auto','AS'],['Rising Auto','AS'],['GAC','AS'],['Wuling','AS'],['Baojun','AS'],['Yudo','AS'],['HiPhi','AS'],['Human Horizons','AS'],['Ford','US'],['Chevrolet','US'],['GMC','US'],['Cadillac','US'],['Buick','US'],['Chrysler','US'],['Dodge','US'],['Jeep','US'],['Ram','US'],['Tesla','US'],['Lincoln','US'],['Rivian','US'],['Lucid','US'],['Fisker','US'],['Pontiac','US'],['Hummer','US']];
+
+const SEED_MODELS={'Renault':['Twingo','Clio','Captur','Kadjar','Austral','Arkana','Symbioz','Mégane','Mégane E-Tech','Scénic','Scénic E-Tech','Espace','Talisman','Zoe','Kangoo','Trafic','Master','R5 E-Tech','R4 E-Tech'],'Peugeot':['208','e-208','2008','e-2008','308','408','508','3008','5008','Rifter','Expert','Traveller'],'Citroën':['C3','ë-C3','C3 Aircross','C4','ë-C4','C5 Aircross','C5 X','Berlingo','Jumpy','Jumper'],'DS Automobiles':['DS3','DS3 Crossback','DS4','DS7','DS9'],'Alpine':['A110','A290'],'Volkswagen':['Polo','Golf','Golf Sportsvan','Up!','e-Up!','T-Cross','T-Roc','Taigo','Tiguan','Tiguan Allspace','Touareg','Passat','Arteon','Sharan','Touran','Caddy','Transporter','Multivan','Crafter','ID.3','ID.4','ID.5','ID.7','ID. Buzz','Amarok','Scirocco','Beetle','Jetta','Eos'],'Audi':['A1','A3','A4','A5','A6','A7','A8','Q2','Q3','Q4 e-tron','Q5','Q7','Q8','e-tron','TT','R8'],'BMW':['Série 1','Série 2','Série 3','Série 4','Série 5','Série 7','X1','X2','X3','X4','X5','X6','X7','Z4','i3','i4','i5','i7','iX'],'Mercedes-Benz':['Classe A','Classe B','Classe C','Classe E','Classe S','CLA','CLS','GLA','GLB','GLC','GLE','GLS','Classe G','EQA','EQB','EQC','EQS'],'Opel':['Corsa','Corsa-e','Astra','Mokka','Mokka-e','Crossland','Grandland'],'Porsche':['911','Cayenne','Macan','Panamera','Taycan','718'],'SEAT':['Ibiza','Leon','Arona','Ateca'],'CUPRA':['Born','Formentor','Ateca','Leon'],'Škoda':['Fabia','Scala','Octavia','Superb','Kamiq','Karoq','Kodiaq','Enyaq','Elroq','Citigo','Rapid','Yeti'],'Fiat':['500','500e','500X','Panda','Tipo','Doblo'],'Alfa Romeo':['Giulietta','Giulia','Stelvio','Tonale'],'Maserati':['Ghibli','Quattroporte','Levante','Grecale','MC20'],'Dacia':['Sandero','Logan','Duster','Jogger','Spring'],'Volvo':['V60','V90','S60','S90','XC40','XC60','XC90','C40','EX30','EX90'],'Polestar':['2','3','4'],'Jaguar':['XF','XE','F-Type','E-Pace','F-Pace','I-Pace'],'Land Rover':['Defender','Discovery','Range Rover','Range Rover Evoque','Range Rover Sport','Range Rover Velar'],'MINI':['Cooper','Countryman','Clubman','Cooper SE'],'Toyota':['Yaris','Yaris Cross','Corolla','Camry','Prius','C-HR','RAV4','Highlander','Land Cruiser','Hilux','bZ4X'],'Lexus':['CT','IS','UX','NX','RX','LBX','ES','RZ'],'Honda':['Jazz','Civic','Accord','CR-V','HR-V','ZR-V','Honda e'],'Nissan':['Micra','Juke','Qashqai','X-Trail','Leaf','Ariya','Navara'],'Mazda':['2','3','6','CX-3','CX-30','CX-5','CX-60','MX-5','MX-30'],'Subaru':['Impreza','XV','Forester','Outback','Solterra'],'Suzuki':['Swift','Ignis','Baleno','S-Cross','Vitara','Jimny'],'Mitsubishi':['ASX','Eclipse Cross','Outlander','L200'],'Hyundai':['i10','i20','i30','Bayon','Kona','Tucson','Santa Fe','Ioniq','Ioniq 5','Ioniq 6'],'Kia':['Picanto','Rio','Ceed','Stonic','Niro','Sportage','Sorento','EV6','EV9'],'Genesis':['G70','G80','GV60','GV70','GV80'],'BYD':['Atto 3','Dolphin','Seal','Seal U','Tang','Han','Song Plus','Yuan Plus','Shark','Denza D9','Denza N7','Yangwang U8','Yangwang U9','Fangchengbao Bao 5','Fangchengbao Bao 8'],'MG':['MG3','MG4','MG5','ZS','ZS EV','HS','Marvel R','Cyberster'],'NIO':['ET5','ET5T','ET7','ET9','EL6','EL7','EL8','EC6','EC7','Firefly'],'XPeng':['P5','P7','P7+','G3','G6','G9','X9','MONA M03'],'Geely':['Atlas','Coolray','Emgrand','Okavango'],'Li Auto':['L6','L7','L8','L9','MEGA'],'Zeekr':['001','007','009','X','MIX','7X','FR'],'Leapmotor':['C10','C11','C16','T03','B10','C01'],'Chery':['Tiggo 4','Tiggo 7','Tiggo 8','Tiggo 9','Arrizo 5','Arrizo 8'],'Omoda':['5','7','E5'],'Jaecoo':['7','8','J7'],'Exeed':['LX','TXL','VX','Sterra ET','Sterra ES'],'Changan':['UNI-T','UNI-V','UNI-K','CS55','CS75','CS95','Lumin'],'Deepal':['SL03','S7','S05','S09','L07','G318'],'Avatr':['11','12','07','06'],'Geely Galaxy':['E5','E8','L6','L7'],'Lynk & Co':['01','03','05','06','07','08','09','Z10','Z20'],'Geometry':['G6','E','C','Panda Mini'],'Great Wall':['Poer','Wingle','Tank 300','Tank 400','Tank 500'],'Haval':['H6','Jolion','Dargo','H9'],'Ora':['03','04','Good Cat'],'Tank':['300','400','500','700'],'Wey':['Mocha','Latte','Macchiato'],'Voyah':['Free','Dream','Zhuiguang'],'Hongqi':['E-HS9','H9','H5','HS5','EH7'],'Maxus':['eDeliver 3','eDeliver 7','eDeliver 9','T90','G90','Everyone 9'],'Roewe':['RX5','RX8','i5','iMAX8','D7'],'BAIC':['BJ30','BJ40','BJ60','BJ80','EU5','X7'],'JAC':['T6','T8','iEV7S','Sunray'],'Dongfeng':['Aeolus Yixuan','Aeolus AX7','eπ 007','eπ 008','Nammi 01'],'DFSK':['Glory 580','F5','F7'],'Jetour':['Dashing','X70','T2','Traveler'],'Kaiyi':['E5','X7','Kunlun'],'Hozon':['Neta V','Neta U','Neta S','Neta X','Neta L','Neta GT'],'Neta':['V','U','S','X','L','GT'],'IM Motors':['L7','LS7','LS6','L6'],'Arcfox':['Alpha S','Alpha T','Kaola','T5'],'Luxgen':['n7','U6'],'Aion':['S','V','LX','Y Plus','Hyper GT','Hyper SSR'],'Forthing':['T5 EVO','Friday','M8'],'Xiaomi Auto':['SU7','SU7 Pro','SU7 Max','SU7 Ultra','YU7'],'Baidu Jiyue':['01','07'],'AITO':['M5','M7','M8','M9'],'Denza':['D9','N7','N8','Z9','Z9 GT'],'Yangwang':['U8','U9','U7'],'Fangchengbao':['Bao 5','Bao 8','Super 3'],'Skyworth':['EV6','HT-i'],'Hengchi':['5','6'],'Kandi':['K23','K27'],'Zotye':['T600','T700'],'Qoros':['3','5'],'Haima':['S5','8S','7X'],'Borgward':['BX5','BX7','BXi7'],'Qiantu':['K50'],'Hycan':['007','Z03','V'],'Singulato':['iS6'],'WM Motor':['EX5','EX6','W6','M7'],'Zhiji Auto':['L7','LS7','LS6','L6'],'Rising Auto':['R7','F7'],'GAC':['Trumpchi GS8','Trumpchi M8','Trumpchi Empow','Trumpchi GS4'],'Wuling':['Hongguang Mini EV','Bingo','Air EV','Starlight','Jiachen'],'Baojun':['Yep','Yun','KiWi EV','510','530'],'Yudo':['π1','π3'],'HiPhi':['X','Z','Y'],'Human Horizons':['HiPhi X','HiPhi Z','HiPhi Y'],'Tata':['Nexon','Punch','Harrier','Safari','Curvv'],'Mahindra':['XUV700','XUV400','Thar','BE 6','XEV 9e'],'VinFast':['VF3','VF5','VF6','VF7','VF8','VF9'],'Ford':['Fiesta','Focus','Mondeo','Kuga','Puma','EcoSport','Explorer','Mustang','Mustang Mach-E','Bronco','Transit','Transit Custom','Ranger','F-150','Maverick'],'Chevrolet':['Spark','Cruze','Malibu','Camaro','Corvette','Trax','Equinox','Tahoe','Silverado','Bolt EV','Volt'],'GMC':['Sierra','Yukon','Terrain','Hummer EV'],'Cadillac':['CT5','XT5','Escalade','Lyriq'],'Jeep':['Renegade','Compass','Cherokee','Grand Cherokee','Wrangler','Gladiator','Avenger'],'Tesla':['Model S','Model 3','Model X','Model Y','Cybertruck'],'Rivian':['R1T','R1S'],'Lucid':['Air'],'Fisker':['Ocean']};
+
+const SEED_ENGINES={'Škoda|Elroq':[['50 170','électrique'],['60 204','électrique'],['85 286','électrique']],'Škoda|Enyaq':[['iV 60 180','électrique'],['iV 80 204','électrique'],['iV 80x 265','électrique'],['iV vRS 299','électrique']],'Škoda|Octavia':[['1.0 TSI 110','essence'],['1.5 TSI 150','essence'],['2.0 TSI 190','essence'],['2.0 TDI 115','diesel'],['2.0 TDI 150','diesel'],['iV 204','hybride rechargeable']],'Volkswagen|ID.4':[['Pure 148','électrique'],['Pro 170','électrique'],['Pro 204','électrique'],['Pro 4Motion 265','électrique'],['GTX 299','électrique'],['GTX 340','électrique']],'Volkswagen|ID.3':[['Pure 150','électrique'],['Pro 204','électrique'],['GTX 326','électrique']],'Volkswagen|Golf':[['1.0 TSI 110','essence'],['1.5 TSI 150','essence'],['2.0 TSI 190','essence'],['2.0 TDI 115','diesel'],['2.0 TDI 150','diesel'],['eHybrid 245','hybride rechargeable']],'Volkswagen|Tiguan':[['1.5 TSI 150','essence'],['2.0 TSI 190','essence'],['2.0 TDI 150','diesel'],['eHybrid 245','hybride rechargeable']],'Renault|R5 E-Tech':[['EV40 95','électrique'],['EV40 120','électrique'],['EV52 150','électrique']],'Renault|R4 E-Tech':[['EV40 120','électrique'],['EV52 150','électrique']],'Renault|3008':[['1.2 PureTech 130','essence'],['1.5 BlueHDi 130','diesel'],['Hybrid 225','hybride rechargeable'],['e-3008 210','électrique']],'Renault|Clio':[['1.0 TCe 90','essence'],['1.5 Blue dCi 100','diesel'],['E-Tech 145','hybride']],'Renault|Mégane E-Tech':[['EV40 130','électrique'],['EV60 220','électrique']],'Renault|Zoe':[['R110','électrique'],['R135','électrique']],'Peugeot|3008':[['1.2 PureTech 130','essence'],['1.5 BlueHDi 130','diesel'],['Hybrid 225','hybride rechargeable'],['e-3008 210','électrique']],'Peugeot|208':[['1.2 PureTech 100','essence'],['1.5 BlueHDi 100','diesel']],'Tesla|Model 3':[['Propulsion','électrique'],['Grande Autonomie','électrique'],['Performance','électrique']],'Tesla|Model Y':[['Propulsion','électrique'],['Grande Autonomie','électrique'],['Performance','électrique']],'BYD|Atto 3':[['58.5 kWh 204 ch','électrique'],['60.5 kWh 204 ch','électrique']],'BYD|Seal':[['61.4 kWh 204 ch','électrique'],['82.5 kWh 313 ch','électrique'],['82.5 kWh AWD 530 ch','électrique']],'Kia|EV6':[['58 kWh 170','électrique'],['77 kWh 325 AWD','électrique'],['GT 585','électrique']]};
+
+const SEED_SHEETS=[{id:'m1',b:'Renault',m:'Mégane',e:'1.2 TCe 120',cat:'Moteur',titre:'1.2 TCe (H5Ft) : consommation d\u2019huile',sym:'Consommation huile élevée, ratés.',dtc:['P0171','P0300'],fix:'Contrôle consommation, bougies + bobines.',src:'Campagnes réseau'},{id:'m2',b:'Renault',m:'Clio',e:'1.5 Blue dCi 100',cat:'Moteur',titre:'1.5 dCi (K9K) : limaille circuit HP',sym:'Démarrage difficile, perte puissance.',dtc:['P0087','P0191'],fix:'Rinçage, pompe HP + injecteurs.',src:'Cas K9K'},{id:'m3',b:'Peugeot',m:'3008',e:'1.2 PureTech 130',cat:'Moteur',titre:'1.2 PureTech : courroie immergée dégradée',sym:'Voyant moteur, casse possible.',dtc:['P0016','P0300'],fix:'Courroie + crépine + huile spécifiée.',src:'Campagnes Stellantis'},{id:'m4',b:'Peugeot',m:'3008',e:'1.5 BlueHDi 130',cat:'Moteur',titre:'1.5 BlueHDi (DV5) : chaîne arbre à cames',sym:'Bruit métallique, casse.',dtc:['P0016'],fix:'Chaîne renforcée.',src:'Campagnes Stellantis'},{id:'m5',b:'Volkswagen',m:'ID.4',e:'Pro 204',cat:'Électrique',titre:'Modules batterie HT : risque échauffement',sym:'Alertes batterie, limitation charge.',dtc:['Codes BMS'],fix:'Diagnostic modules, MAJ, remplacement.',src:'NHTSA 23V-225'},{id:'m6',b:'Volkswagen',m:'Golf',e:'1.0 TSI 110',cat:'Transmission',titre:'DSG7 DQ200 : mécatronique',sym:'À-coups, patinage.',dtc:['P17BF','P0841'],fix:'MAJ logiciel, mécatronique.',src:'Cas DQ200'},{id:'m7',b:'Škoda',m:'Enyaq',e:'iV 80 204',cat:'Électrique',titre:'Batterie 82 kWh : déséquilibre cellules',sym:'Autonomie en baisse, SOH irrégulier.',dtc:['P0A80'],fix:'Équilibrage modules, rapport SOH.',src:'Cas Enyaq MEB'},{id:'m8',b:'Renault',m:'R5 E-Tech',e:'',cat:'Transmission',titre:'Sélection de vitesse impossible (N bloqué)',sym:'Véhicule bloqué en position N.',dtc:['P1811','P0700'],fix:'Fermer véhicule, attendre extinction voyants (mise en veille) ou MAJ logicielle concession.',src:'Cas R5 E-Tech'},{id:'m9',b:'Renault',m:'R5 E-Tech',e:'',cat:'Électrique',titre:'Recharge AC/DC : problème branchement',sym:'Témoin charge rouge, message problème.',dtc:['P0D16','P0D17','P1E00'],fix:'Mise à jour calculateur de charge sous garantie.',src:'Cas R5 E-Tech'},{id:'m10',b:'Renault',m:'R5 E-Tech',e:'',cat:'Électronique',titre:'Multimédia : écran figé, reboots',sym:'Pertes son GPS, réinitialisations.',dtc:['U1233','U0155'],fix:'Mises à jour OTA ou reprogrammation atelier.',src:'Cas R5 E-Tech'},{id:'m11',b:'Renault',m:'R5 E-Tech',e:'',cat:'Électrique',titre:'BMS : panne électrique danger',sym:'Mode dégradé temporaire.',dtc:['P0A80','P0A1F'],fix:'Reprogrammation BMS.',src:'Cas R5 E-Tech'}];
+
+const T_D=[['Vanne EGR encrassée','Perte puissance, ralenti instable.',['P0401','P0402'],'Nettoyage/remplacement vanne EGR.','Panne diesel','Moteur'],['FAP colmaté','Voyant FAP, mode dégradé.',['P2002','P242F'],'Régénération forcée.','Panne diesel','Moteur'],['Turbo GV grippée','Manque puissance, sifflement.',['P0299','P00AF'],'Contrôle wastegate/GV, turbo.','Panne diesel','Moteur']];
+const T_E=[['Bobines allumage / ratés','Ratés, voyant clignotant.',['P0300','P0301'],'Remplacement bobines/bougies.','Panne essence','Moteur'],['Injecteurs essence encrassés','Ralenti irrégulier.',['P0171','P0200'],'Nettoyage injecteurs.','Panne essence','Moteur']];
+const T_EV=[['Défaut charge (OBC)','Charge interrompue/lente.',['P0C78','P1E00'],'Contrôle connecteur/câble/borne, OBC, BMS.','Panne VE','Électrique'],['Batterie HT : déséquilibre (SOH)','Autonomie dégradée.',['P0A80'],'Rapport SOH, équilibrage forcé.','Préconisation VE','Électrique']];
+const T_HY=[['Onduleur hybride : refroidissement','Voyant hybride, mode dégradé.',['P0A78','P0A93'],'Contrôle pompe/liquide onduleur.','Panne hybride','Électrique']];
+const T_M=[['Capteur vitesse roue ABS/ESP','Voyant ABS/ESP.',['C0035','C0040'],'Contrôle capteur + câblage.','Panne ABS','ABS'],['ADAS : calibration caméra/radar','Alertes ADAS après pare-brise.',['U-codes ADAS'],'Calibration statique/dynamique.','Préconisation ADAS','ADAS'],['Contacteur tournant airbag','Voyant airbag, klaxon HS.',['B1000'],'Remplacement contacteur.','Panne airbag','Airbag']];
+
+const FAM=[{re:/PureTech|VTi/i,brands:['Peugeot','Citroën','DS Automobiles','Opel'],cat:'Moteur',t:'Courroie immergée : dégradation prématurée',s:'Voyant moteur, casse possible.',d:['P0016','P0300'],f:'Courroie + crépine + huile.',src:'Campagnes Stellantis'},{re:/1\.5 BlueHDi/i,brands:['Peugeot','Citroën','DS Automobiles','Opel'],cat:'Moteur',t:'1.5 BlueHDi (DV5) : chaîne arbre à cames',s:'Bruit métallique, casse.',d:['P0016'],f:'Chaîne renforcée.',src:'Campagnes Stellantis'},{re:/dCi/i,brands:['Renault','Dacia','Nissan'],cat:'Moteur',t:'K9K : injecteurs, pompe HP, joints',s:'Perte puissance, limaille.',d:['P0087','P0200'],f:'Contrôle circuit HP, rinçage.',src:'Cas K9K'},{re:/1\.2 TCe/i,brands:['Renault','Dacia'],cat:'Moteur',t:'1.2 TCe : consommation huile',s:'Consommation huile, ratés.',d:['P0171','P0300'],f:'Suivi consommation, bougies/bobines.',src:'Campagnes réseau'},{re:/TSI|TDI/i,brands:['Volkswagen','Škoda','SEAT','CUPRA','Audi'],cat:'Transmission',t:'DSG7 DQ200/DQ381 : mécatronique',s:'À-coups, patinage.',d:['P17BF','P0841'],f:'MAJ logiciel, mécatronique.',src:'Cas DSG'},{re:/e-|Electric|EV|ë-|Ioniq|EV6|EV9|MG4|Model|ID\.|e-tron|Taycan|Ariya|Leaf|Zoe|Spring|Bolt|Mach-E|Atto 3|Dolphin|Seal|Song|Han|Tang|Yuan|Shark|kWh|NIO|XPeng|Zeekr|Leapmotor|Li Auto|Hongqi|Aion|Neta|IM Motors|Arcfox|Luxgen|SU7|Jiyue|AITO|Denza|Yangwang|Fangchengbao|Skyworth|Hengchi|HiPhi|WM Motor|Hycan|Baojun|Wuling|Elroq|Enyaq|R5 E-Tech|R4 E-Tech/i,brands:[],cat:'Électrique',t:'Surveillance batterie HT : SOH/campagnes',s:'Vérifier SOH, historique charge rapide.',d:['Codes HV'],f:'Rapport SOH, contrôle campagnes VIN.',src:'Préconisation VE'}];
+
+function idb(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,DB_VER);r.onupgradeneeded=e=>{const db=e.target.result;['brands','models','engines','sheets'].forEach(s=>{if(!db.objectStoreNames.contains(s))db.createObjectStore(s,{keyPath:'id'});});};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+async function dbAll(store){const db=await idb();return new Promise((res,rej)=>{const q=db.transaction(store).objectStore(store).getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>rej(q.error);});}
+async function dbPut(store,val){const db=await idb();return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');tx.objectStore(store).put(val);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
+async function dbBulk(store,vals){const db=await idb();for(let i=0;i<vals.length;i+=2000){await new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');vals.slice(i,i+2000).forEach(v=>tx.objectStore(store).put(v));tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}}
+async function dbDel(store,id){const db=await idb();return new Promise(res=>{const tx=db.transaction(store,'readwrite');tx.objectStore(store).delete(id);tx.oncomplete=()=>res();});}
+async function dbClear(store){const db=await idb();return new Promise(res=>{const tx=db.transaction(store,'readwrite');tx.objectStore(store).clear();tx.oncomplete=()=>res();});}
+
+const h=s=>{let x=7;for(let i=0;i<s.length;i++)x=(x*31+s.charCodeAt(i))>>>0;return x.toString(36);};
+function buildAllSheets(models,engines){
+ const out=[],seen=new Set();
+ const push=(b,m,e,cat,titre,sym,dtc,fix,src,off)=>{const id='g'+h([b,m,e||'',titre].join('|'));if(seen.has(id))return;seen.add(id);out.push({id,b,m,e:e||'',cat,titre,sym,dtc,fix,src,off:off?1:0});};
+ SEED_SHEETS.forEach(s=>push(s.b,s.m,s.e||'',s.cat,s.titre,s.sym,s.dtc,s.fix,s.src,s.off));
+ engines.forEach(x=>{const fam=FAM.filter(r=>(!r.brands.length||r.brands.includes(x.b))&&(r.re.test(x.e)||r.re.test(x.m)));fam.forEach(r=>push(x.b,x.m,x.e,r.cat,r.t,r.s,r.d,r.f,r.src));});
+ engines.forEach(x=>{const T=x.fuel==='diesel'?T_D:x.fuel==='essence'?T_E:(x.fuel==='électrique')?T_EV:(x.fuel==='hybride'||x.fuel==='hybride rechargeable')?T_HY:T_E;T.forEach(a=>push(x.b,x.m,x.e,a[5],a[0],a[1],a[2],a[3],a[4]));});
+ models.forEach(x=>T_M.forEach(a=>push(x.b,x.m,'',a[5],a[0],a[1],a[2],a[3],a[4])));
+ if(window.getKnownIssues){models.forEach(m=>{var iss=window.getKnownIssues(m.b,m.m);if(iss&&iss.length){iss.forEach(i=>push(m.b,m.m,'',classifyOfficial(i[0]+' '+i[1]),m.m+' : '+i[0],i[0],i[3]||[],i[2],i[4]||'Panne connue'));}});}
+ engines.forEach(eng=>{var iss=window.getKnownIssues?window.getKnownIssues(eng.b,eng.m):[];if(iss&&iss.length){iss.forEach(i=>push(eng.b,eng.m,eng.e,classifyOfficial(i[0]+' '+i[1]),eng.m+' '+eng.e+' : '+i[0],i[0]+' ('+eng.e+')',i[3]||[],i[2]+' (spécifique '+eng.e+')',i[4]||'Panne connue'));}});
  return out;
 }
+async function seedIfEmpty(){
+ if(localStorage.getItem(SEED_FLAG))return;
+ const brands=SEED_BRANDS.map(([name,origin])=>({id:name,name,origin}));
+ const models=[];Object.keys(SEED_MODELS).forEach(b=>SEED_MODELS[b].forEach(m=>models.push({id:b+'|'+m,b,m})));
+ const engines=[];Object.keys(SEED_ENGINES).forEach(k=>{const[b,m]=k.split('|');SEED_ENGINES[k].forEach(([e,fuel])=>engines.push({id:k+'|'+e,b,m,e,fuel}));});
+ const sheets=buildAllSheets(models,engines);
+ await dbBulk('brands',brands);await dbBulk('models',models);await dbBulk('engines',engines);await dbBulk('sheets',sheets);
+ localStorage.setItem(SEED_FLAG,'1');
+ setTimeout(()=>toast('✅ Base initialisée : '+sheets.length.toLocaleString('fr-FR')+' fiches'),800);
+}
+
+function getWatchlist(){try{return JSON.parse(localStorage.getItem('mrt_watchlist')||'[]');}catch(e){return[];}}
+function addWatch(b,m){const l=getWatchlist().filter(x=>!(x.b===b&&x.m===m));l.unshift({b,m});localStorage.setItem('mrt_watchlist',JSON.stringify(l.slice(0,WATCH_MAX)));}
+function clearWatchlist(){localStorage.setItem('mrt_watchlist','[]');toast('Liste de suivi vidée');refreshAdmin();}
+
+const $=s=>document.querySelector(s);
+const state={group:'ALL',brand:null,model:null,engine:null,fuel:'Tous',cat:'Tous',q:''};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(msg){const t=$('#toast');t.textContent=msg;t.style.display='block';clearTimeout(t._x);t._x=setTimeout(()=>t.style.display='none',3500);}
+function closeDrawer(id){$('#'+id).style.display='none';}
+function closeModal(id){$('#'+id).classList.remove('show');}
+function openModal(id){$('#'+id).classList.add('show');}
+function hideSuggest(){['dtcSuggest','modelSuggest','brandSuggest','aiResult'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});}
+window.hideSuggest=hideSuggest;
+window.validateSearch=function(){hideSuggest();renderGlobal($('#globalSearch').value);};
+window.clearSearchBox=function(){$('#globalSearch').value='';hideSuggest();$('#globalDrawer').style.display='none';};
+
+window.weeklyVerification=async function(){
+ const last=parseInt(localStorage.getItem('mrt_last_verification')||'0');
+ const now=Date.now();
+ if(now-last<WEEK_MS){toast('Dernière vérification il y a '+Math.round((now-last)/86400000)+' jours');return;}
+ toast('🔍 Vérification hebdomadaire…');
+ const[b,m,e,s]=await Promise.all(['brands','models','engines','sheets'].map(dbAll));
+ const errors=[];
+ if(b.length<200)errors.push('Marques insuffisantes');
+ if(m.length<800)errors.push('Modèles insuffisants');
+ if(s.length<5000)errors.push('Fiches insuffisantes');
+ const criticalDTC=['P0016','P0087','P0299','P0401','P2002','P20EE','P0700','C0035','B0001','P0A80'];
+ criticalDTC.forEach(code=>{if(!window.dtcInfo||!window.dtcInfo(code))errors.push('Code DTC manquant : '+code);});
+ localStorage.setItem('mrt_last_verification',String(now));
+ if(errors.length){toast('⚠️ '+errors.length+' erreur(s)');}
+ else{toast('✅ Vérification réussie : '+b.length+' marques, '+m.length+' modèles, '+s.length+' fiches');}
+};
+
+function selfTest(){
+ const bgOp=parseFloat(getComputedStyle($('#bg')).opacity);
+ return[
+  ['Bouton 🔐 admin',!!$('#btnAdmin')],
+  ['Mdp masqué',$('#adminPass').type==='password'],
+  ['Accès tiers Firebase',window.ACCESS_ENABLED?'actif':'désactivé'],
+  ['Révocation forcée',!!window.ACCESS_GUARD],
+  ['Base DTC ('+(window.DTC_COUNT||0)+' codes)',(window.DTC_COUNT||0)>=100],
+  ['extractDtc P20EE',window.extractDtc && window.extractDtc('P20EE').length>0],
+  ['IA Gemini',!!window.askGemini]
+ ];
+}
+
+async function refreshAdmin(){
+ const[b,m,e,s]=await Promise.all(['brands','models','engines','sheets'].map(dbAll));
+ const official=s.filter(x=>x.off).length;
+ const wl=getWatchlist();
+ const last=parseInt(localStorage.getItem('mrt_last_auto_update')||'0');
+ const next=last?new Date(last+WEEK_MS).toLocaleDateString('fr-FR'):'—';
+ let html='<span class="stat"><b>'+b.length+'</b>marques</span><span class="stat"><b>'+m.length+'</b>modèles</span><span class="stat"><b>'+e.length+'</b>motorisations</span><span class="stat"><b>'+s.length.toLocaleString('fr-FR')+'</b>fiches</span><span class="stat"><b>'+official.toLocaleString('fr-FR')+'</b>officielles</span><span class="stat"><b>'+wl.length+'</b>suivis</span><span class="stat"><b>'+(last?new Date(last).toLocaleDateString('fr-FR'):'jamais')+'</b>dernière MàJ</span><span class="stat"><b>'+next+'</b>prochaine MàJ</span>';
+ html+='<div style="margin-top:8px"><b class="muted">AUTO-TESTS :</b><br>'+selfTest().map(i=>'<span class="stat"><b>'+(i[1]===true?'✅':(i[1]===false?'⚠️':''))+'</b>'+i[0]+'</span>').join('')+'</div>';
+ $('#statsBox').innerHTML=html;
+ fillBrandSelects(b);
+}
+function fillBrandSelects(brands){
+ ['nmBrand','neBrand','nfBrand'].forEach(id=>{const sel=$('#'+id);sel.innerHTML='';brands.sort((a,b)=>a.name.localeCompare(b.name,'fr')).forEach(x=>{const o=document.createElement('option');o.value=x.name;o.textContent=x.name;sel.appendChild(o);});});
+}
+async function fillModelSelect(bSel,mSel){
+ const models=(await dbAll('models')).filter(x=>x.b===$('#'+bSel).value);
+ const sel=$('#'+mSel);sel.innerHTML='';models.forEach(x=>{const o=document.createElement('option');o.value=x.m;o.textContent=x.m;sel.appendChild(o);});
+ if(mSel==='nfModel')fillEngineSelect();
+}
+async function fillEngineSelect(){
+ const eng=(await dbAll('engines')).filter(x=>x.b===$('#nfBrand').value&&x.m===$('#nfModel').value);
+ const sel=$('#nfEngine');sel.innerHTML='<option value="">(toutes)</option>';
+ eng.forEach(x=>{const o=document.createElement('option');o.value=x.e;o.textContent=x.e;sel.appendChild(o);});
+}
+function adminTab(btn,id){document.querySelectorAll('.adminTabs .chip').forEach(c=>c.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.adminSec').forEach(s=>s.classList.remove('show'));$('#'+id).classList.add('show');if(id==='tabAccess'&&window.renderAccessAdmin)window.renderAccessAdmin();if(id==='tabStats')refreshAdmin();}
+async function addBrand(){const n=$('#nbName').value.trim();if(!n)return toast('Nom requis');await dbPut('brands',{id:n,name:n,origin:$('#nbOrigin').value});toast('Marque ajoutée ✓');refreshAdmin();renderBrands();}
+async function addModel(){const b=$('#nmBrand').value,n=$('#nmName').value.trim();if(!n)return toast('Nom requis');await dbPut('models',{id:b+'|'+n,b,m:n});toast('Modèle ajouté ✓');refreshAdmin();if(state.brand===b)renderModels();}
+async function addEngine(){const b=$('#neBrand').value,m=$('#neModel').value,e=$('#neLabel').value.trim(),f=$('#neFuel').value;if(!e)return toast('Libellé requis');await dbPut('engines',{id:b+'|'+m+'|'+e,b,m,e,fuel:f});toast('Motorisation ajoutée ✓');refreshAdmin();if(state.brand===b&&state.model===m)renderEngines();}
+async function addSheet(){
+ const b=$('#nfBrand').value,m=$('#nfModel').value,e=$('#nfEngine').value,titre=$('#nfTitle').value.trim();
+ if(!titre)return toast('Titre requis');
+ await dbPut('sheets',{id:'u'+h(b+m+e+titre+Date.now()),b,m,e,cat:$('#nfCat').value,titre,sym:$('#nfSym').value,dtc:$('#nfDtc').value.split(',').map(s=>s.trim()).filter(Boolean),fix:$('#nfFix').value,src:$('#nfSrc').value||'Ajout admin'});
+ toast('Fiche enregistrée ✓');$('#nfTitle').value=$('#nfSym').value=$('#nfDtc').value=$('#nfFix').value=$('#nfSrc').value='';
+}
+async function doImport(){
+ const f=$('#importFile').files[0];if(!f)return toast('Choisissez un fichier JSON');
+ try{
+  const data=JSON.parse(await f.text());let n=0;
+  const putAll=async(store,arr)=>{if(!Array.isArray(arr))return;arr.forEach(x=>{if(!x.id)x.id='i'+h(JSON.stringify(x));});await dbBulk(store,arr);n+=arr.length;};
+  await putAll('brands',data.brands);await putAll('models',data.models);await putAll('engines',data.engines);
+  await putAll('sheets',Array.isArray(data)?data:data.sheets);
+  toast(n+' entrée(s) importée(s) ✓');refreshAdmin();renderBrands();
+ }catch(e){toast('Fichier invalide : '+e.message);}
+}
+async function exportAll(){
+ const[b,m,e,s]=await Promise.all(['brands','models','engines','sheets'].map(dbAll));
+ const blob=new Blob([JSON.stringify({brands:b,models:m,engines:e,sheets:s},null,1)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mon-aide-technique-export.json';a.click();
+}
+async function resetBase(){if(!confirm('Régénérer toute la base ?'))return;for(const s of['brands','models','engines','sheets'])await dbClear(s);localStorage.removeItem(SEED_FLAG);await seedIfEmpty();refreshAdmin();renderBrands();toast('Base régénérée ✓');}
+async function clearOfficial(){
+ if(!confirm('Effacer UNIQUEMENT les fiches officielles ?'))return;
+ const s=await dbAll('sheets');const keep=s.filter(x=>!x.off);
+ await dbClear('sheets');await dbBulk('sheets',keep);
+ refreshAdmin();toast('Fiches officielles effacées ('+keep.length+' conservées) ✓');
+}
+$('#bgFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{localStorage.setItem('mrt_bg',rd.result);applyBg();toast('Fond appliqué ✓');}catch(err){toast('Image trop lourde');}};rd.readAsDataURL(f);});
+function resetBg(){localStorage.removeItem('mrt_bg');applyBg();}
+function applyBg(){const url=localStorage.getItem('mrt_bg');const bg=$('#bg');if(url){bg.style.backgroundImage='url('+url+')';bg.querySelector('svg').style.display='none';}else{bg.style.backgroundImage='';bg.querySelector('svg').style.display='';}}
+
+function netBadge(){const on=navigator.onLine;const el=$('#netBadge');let t='';try{t=navigator.connection&&navigator.connection.effectiveType||'';}catch(e){}
+ el.textContent=on?('En ligne • '+((t==='4g')?'4G/5G':t?t.toUpperCase():'WiFi')):'Hors ligne • données locales';
+ el.className='badge '+(on?'on':'off');}
+window.addEventListener('online',()=>{netBadge();toast('Connexion rétablie ✓');});
+window.addEventListener('offline',netBadge);
+$('#btnShare').onclick=async()=>{
+ const data={title:'Mon Aide Technique by Kevin',text:'App de diagnostics — '+document.title,url:location.href};
+ try{if(navigator.share)await navigator.share(data);else{await navigator.clipboard.writeText(location.href);toast('Lien copié ✓');}}catch(e){}
+};
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#btnInstall').style.display='';});
+$('#btnInstall').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();deferredPrompt=null;$('#btnInstall').style.display='none';};
+
+$('#btnAdmin').onclick=()=>{openModal('adminModal');if(sessionStorage.getItem('mrt_admin')==='1')showAdminPanel();};
+$('#brandSearch').addEventListener('input',e=>{state.q=e.target.value.toLowerCase();renderBrands();});
+$('#modelSearch').addEventListener('input',renderModels);
+$('#globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();validateSearch();}});
+$('#globalSearch').addEventListener('input',e=>{
+ clearTimeout(window._gsTimer);
+ const q=e.target.value;
+ window._gsTimer=setTimeout(()=>{ if(window.onSearchInput)window.onSearchInput(q); },150);
+});
+document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');}));
+
+function renderGroupChips(){
+ const c=$('#groupChips');c.innerHTML='';
+ [['ALL','🌍 Toutes'],['FR',ORIGINS.FR],['EU',ORIGINS.EU],['AS',ORIGINS.AS],['US',ORIGINS.US]].forEach(([k,l])=>{
+  const d=document.createElement('div');d.className='chip'+(state.group===k?' active':'');d.textContent=l;
+  d.onclick=()=>{state.group=k;renderGroupChips();renderBrands();};c.appendChild(d);});
+}
+async function renderBrands(){
+ let brands=await dbAll('brands');
+ if(state.group!=='ALL')brands=brands.filter(b=>b.origin===state.group);
+ if(state.q)brands=brands.filter(b=>b.name.toLowerCase().includes(state.q));
+ brands.sort((a,b)=>a.name.localeCompare(b.name,'fr'));
+ const g=$('#brandGrid');g.innerHTML='';
+ brands.forEach(b=>{const d=document.createElement('div');d.className='brandBtn';d.innerHTML='<b>'+esc(b.name)+'</b><span>'+ORIGINS[b.origin]+'</span>';d.onclick=()=>selectBrand(b.name);g.appendChild(d);});
+}
+async function selectBrand(name){
+ state.brand=name;state.model=null;state.engine=null;
+ $('#modelsDrawer').style.display='';$('#modelsTitle').textContent='🚗 Modèles — '+name;
+ closeDrawer('enginesDrawer');closeDrawer('sheetsDrawer');
+ await renderModels();$('#modelsDrawer').scrollIntoView({behavior:'smooth'});
+}
+async function renderModels(){
+ const models=(await dbAll('models')).filter(x=>x.b===state.brand);
+ const q=($('#modelSearch').value||'').toLowerCase();
+ const list=$('#modelList');list.innerHTML='';
+ if(!models.length)list.innerHTML='<p class="muted">Aucun modèle.</p>';
+ models.filter(x=>!q||x.m.toLowerCase().includes(q)).sort((a,b)=>a.m.localeCompare(b.m,'fr')).forEach(x=>{
+  const d=document.createElement('div');d.className='rowItem';d.innerHTML='<b>'+esc(x.m)+'</b><span>modèles ▸</span>';
+  d.onclick=()=>selectModel(x.m);list.appendChild(d);});
+}
+async function selectModel(m){
+ state.model=m;state.engine=null;
+ addWatch(state.brand,m);
+ $('#enginesDrawer').style.display='';$('#enginesTitle').textContent='⚙️ Motorisations — '+state.brand+' '+m;
+ closeDrawer('sheetsDrawer');renderFuelChips();await renderEngines();$('#enginesDrawer').scrollIntoView({behavior:'smooth'});
+}
+function renderFuelChips(){
+ const c=$('#fuelChips');c.innerHTML='';
+ FUELS.forEach(f=>{const d=document.createElement('div');d.className='chip'+(state.fuel===f?' active':'');d.textContent=f;
+ d.onclick=()=>{state.fuel=f;renderFuelChips();renderEngines();};c.appendChild(d);});
+}
+async function renderEngines(){
+ let eng=(await dbAll('engines')).filter(x=>x.b===state.brand&&x.m===state.model);
+ const all=eng;
+ if(state.fuel!=='Tous')eng=eng.filter(x=>x.fuel===state.fuel);
+ const list=$('#engineList');list.innerHTML='';
+ const every=document.createElement('div');every.className='rowItem';every.innerHTML='<b>📂 Toutes les fiches du modèle</b><span>'+all.length+' motorisations</span>';
+ every.onclick=()=>selectEngine(null);list.appendChild(every);
+ if(!eng.length)list.insertAdjacentHTML('beforeend','<p class="muted">Aucune motorisation.</p>');
+ eng.sort((a,b)=>a.e.localeCompare(b.e)).forEach(x=>{
+  const d=document.createElement('div');d.className='rowItem';d.innerHTML='<b>'+esc(x.e)+'</b><span>'+esc(x.fuel)+'</span>';
+  d.onclick=()=>selectEngine(x.e);list.appendChild(d);});
+}
+async function selectEngine(e){
+ state.engine=e;
+ $('#sheetsDrawer').style.display='';
+ $('#sheetsTitle').textContent='📋 Fiches — '+state.brand+' '+state.model+(e?' • '+e:'');
+ renderCatChips();await renderSheets();$('#sheetsDrawer').scrollIntoView({behavior:'smooth'});
+}
+function renderCatChips(){
+ const c=$('#catChips');c.innerHTML='';
+ CATS.forEach(k=>{const d=document.createElement('div');d.className='chip'+(state.cat===k?' active':'');d.textContent=k;
+ d.onclick=()=>{state.cat=k;renderCatChips();renderSheets();};c.appendChild(d);});
+}
+function sheetCard(s){
+ const d=document.createElement('div');d.className='sheet';
+ d.innerHTML='<div class="l1"><span class="cat c-'+esc(s.cat)+'">'+esc(s.cat)+'</span><b>'+esc(s.titre)+'</b><span class="src '+(s.off?'off':'')+'">'+esc(s.src||'')+'</span></div>'+
+ '<div class="l2">📋 '+esc(s.sym||'')+'</div>'+
+ '<div class="l3">🔧 DTC : '+(s.dtc&&s.dtc.length?s.dtc.map(esc).join(' • '):'—')+'</div>'+
+ '<div class="l4">✅ '+esc(s.fix||'')+'</div>';
+ d.onclick=()=>openSheet(s);return d;
+}
+async function renderSheets(){
+ let sheets=(await dbAll('sheets')).filter(s=>s.b===state.brand&&s.m===state.model);
+ if(state.engine)sheets=sheets.filter(s=>!s.e||s.e===state.engine);
+ if(state.cat!=='Tous')sheets=sheets.filter(s=>s.cat===state.cat);
+ sheets.sort((a,b)=>(b.off||0)-(a.off||0));
+ const list=$('#sheetList');list.innerHTML='';
+ if(!sheets.length)list.innerHTML='<p class="muted">Aucune fiche. Utilisez 🛰 pour importer.</p>';
+ sheets.slice(0,300).forEach(s=>list.appendChild(sheetCard(s)));
+ $('#sheetsTitle').textContent='📋 Fiches ('+sheets.length+') — '+state.brand+' '+state.model+(state.engine?' • '+state.engine:'');
+}
+
+async function renderGlobal(q){
+ const drawer=$('#globalDrawer');
+ if(!drawer) return;
+ q=(q||'').trim();
+ if(q.length<2){ drawer.style.display='none'; return; }
+ const ql=q.toLowerCase();
+ let panel=''; window.__assist=null;
+ if(window.buildAssistant){
+  try{ const a=await window.buildAssistant(ql); panel=a.html; window.__assist=a; }
+  catch(e){ console.error('[renderGlobal] error:', e); }
+ }
+ const A=window.__assist||{};
+ const codes = window.extractDtc ? window.extractDtc(q) : [];
+ console.log('[renderGlobal] codes extraits:', codes);
+
+ const all=await dbAll('sheets');
+ const words=ql.split(/\s+/).filter(w=>w.length>=2 && !/^[pcbu][0-9a-f]{4,5}$/i.test(w));
+ const res=all.filter(s=>{
+  const vehOk=(!A.b||s.b===A.b)&&(!A.m||s.m===A.m);
+  if(!vehOk)return false;
+  if(codes.length){
+   const hasCode=(s.dtc||[]).some(d=>codes.indexOf(d.toUpperCase())!==-1);
+   if(hasCode)return true;
+  }
+  if(words.length){
+   const hay=(s.titre+' '+s.sym+' '+s.b+' '+s.m+' '+s.e+' '+s.src+' '+(s.dtc||[]).join(' ')).toLowerCase();
+   return words.some(w=>hay.indexOf(w)!==-1);
+  }
+  return !!codes.length;
+ });
+
+ drawer.style.display='';
+ $('#globalCount').textContent='('+res.length+' résultat'+(res.length>1?'s':'')+')';
+ const list=$('#globalList');
+ list.innerHTML=panel||'';
+ if(!res.length&&!panel){
+  list.innerHTML='<p class="muted">Aucun résultat local.</p>';
+  if(codes.length||A.b||A.m){
+   const queries=[];
+   if(A.b&&A.m)queries.push(A.b+' '+A.m);
+   codes.forEach(c=>queries.push(c));
+   if(A.b&&A.m&&codes.length)queries.push(A.b+' '+A.m+' '+codes[0]);
+   if(window.buildSourceLinks){
+    const cats=window.buildSourceLinks(queries);
+    let links='<div class="drawer"><h2>🔎 Recherches externes massives</h2>';
+    for(const cat in cats){
+     if(!cats[cat].items.length)continue;
+     links+='<div style="margin:10px 0"><b>'+cats[cat].label+'</b><div class="actions" style="margin-top:6px">';
+     cats[cat].items.forEach(it=>{links+='<a href="'+it.url+'" target="_blank" rel="noopener" class="chip">'+it.icon+' '+esc(it.name)+'</a>';});
+     links+='</div></div>';
+    }
+    links+='</div>';
+    list.innerHTML+=links;
+   }
+  }
+ }
+ res.slice(0,100).forEach(s=>list.appendChild(sheetCard(s)));
+}
+
+let CURRENT=null;
+function openSheet(s){
+ CURRENT=s;$('#smCat').textContent=s.cat;$('#smCat').className='cat c-'+s.cat;
+ $('#smVeh').textContent=s.b+' '+s.m+(s.e?' — '+s.e:'');
+ $('#smTitle').textContent=s.titre;$('#smSym').textContent=s.sym||'—';
+ $('#smDtc').textContent=s.dtc&&s.dtc.length?s.dtc.join(' • '):'—';
+ $('#smFix').textContent=s.fix||'—';$('#smSrc').textContent=s.src||'—';
+ $('#smDel').style.display=sessionStorage.getItem('mrt_admin')==='1'?'':'none';
+ openModal('sheetModal');
+}
+function printSheet(){
+ const s=CURRENT;if(!s)return;
+ $('#printSheet').innerHTML='<h1>Mon Aide Technique by Kevin</h1><p><b>'+esc(s.b)+' '+esc(s.m)+(s.e?' — '+esc(s.e):'')+'</b> • Catégorie : '+esc(s.cat)+' • '+new Date().toLocaleDateString('fr-FR')+'</p>'+
+ '<div class="box"><b>'+esc(s.titre)+'</b><br>Symptômes : '+esc(s.sym||'—')+'<br>DTC : '+(s.dtc&&s.dtc.length?esc(s.dtc.join(', ')):'—')+'<br>Préconisation : '+esc(s.fix||'—')+'<br>Source : '+esc(s.src||'—')+'</div>'+
+ '<p style="font-size:11px">Document informatif — confirmez toute campagne avec le VIN.</p>';
+ window.print();
+}
+async function deleteCurrentSheet(){if(!CURRENT)return;if(confirm('Supprimer ?')){await dbDel('sheets',CURRENT.id);closeModal('sheetModal');renderSheets();toast('Fiche supprimée');}}
+
+function classifyOfficial(text){
+ const c=(text||'').toLowerCase();
+ if(/airbag|srs|pretension|prétension|inflator|takata/i.test(c))return'Airbag';
+ if(/belt|seatbelt|ceinture|retractor|harness|enrouleur/i.test(c))return'Ceinture';
+ if(/adas|adaptive cruise|lane keep|park assist|blind spot|collision|aeb|autopilot|radar|front ?assist/i.test(c))return'ADAS';
+ if(/camera|caméra|rear view|backup cam|360|parking cam/i.test(c))return'Caméra';
+ if(/\babs\b|anti[- ]?lock|antiblocage|ebd|bas/i.test(c))return'ABS';
+ if(/brak|frein|caliper|étrier|pédale|pedal|rotor|disque|plaquette|pad/i.test(c))return'Freinage';
+ if(/battery|batter[iy]e|cell|module|hv |high[- ]?voltage|traction|li[- ]?ion|lithium|bms|lfp|nmc/i.test(c))return'Électrique';
+ if(/inverter|convertisseur|dc[\s/-]?dc|dc[\s/-]?ac|onduleur|charger|chargeur|obc/i.test(c))return'Électrique';
+ if(/transmission|gear|gearbox|boîte|boite|clutch|embrayage|driveshaft|axle|dsg|cvt|edc|dct/i.test(c))return'Transmission';
+ if(/egr|fap|dpf|adblue|scr|nox|cataly|échap|exhaust|reductant/i.test(c))return'Dépollution';
+ if(/engine|moteur|turbo|injector|injecteur|valve|soupape|camshaft|piston|cylinder|fuel|carburant|throttle|papillon/i.test(c))return'Moteur';
+ return'Électronique';
+}
+const stripAcc=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+async function syncNHTSA(silent){
+ if(!navigator.onLine){if(!silent)toast('Hors ligne');return 0;}
+ if(!state.brand||!state.model){if(!silent)toast('Sélectionnez marque et modèle');return 0;}
+ const make=stripAcc(state.brand).toUpperCase();let n=0;
+ if(!silent)toast('Interrogation rappels NHTSA…');
+ try{
+  const r=await fetch('https://api.nhtsa.gov/recalls/recallsByVehicle?make='+encodeURIComponent(make)+'&model='+encodeURIComponent(state.model));
+  const j=await r.json();
+  for(const rec of(j.results||[])){const id='nhtsa-'+rec.NHTSACampaignNumber;
+   const comp=(rec.Component||'')+' '+(rec.Summary||'');
+   await dbPut('sheets',{id,b:state.brand,m:state.model,e:'',cat:classifyOfficial(comp),titre:'Rappel NHTSA : '+rec.Component,sym:rec.Summary||'—',dtc:['Voir rapport NHTSA '+rec.NHTSACampaignNumber],fix:(rec.Remedy?'Action : '+rec.Remedy:'Contacter le réseau '+state.brand),src:'NHTSA '+rec.NHTSACampaignNumber,off:1});n++;}
+ }catch(e){}
+ if(!silent)toast('NHTSA : '+n+' rappel(s) ✓');renderSheets();return n;
+}
+async function syncTSB(silent){
+ if(!navigator.onLine){if(!silent)toast('Hors ligne');return 0;}
+ if(!state.brand||!state.model){if(!silent)toast('Sélectionnez marque et modèle');return 0;}
+ const make=stripAcc(state.brand).toUpperCase();let n=0;
+ if(!silent)toast('Interrogation TSB…');
+ try{
+  const r=await fetch('https://api.nhtsa.gov/tsb/tsbsByVehicle?make='+encodeURIComponent(make)+'&model='+encodeURIComponent(state.model));
+  const j=await r.json();
+  for(const rec of(j.results||[])){
+   const num=rec.tsbNumber||rec.bulletinNumber||rec.id||h(JSON.stringify(rec));
+   const title=rec.title||rec.component||'Fiche technique constructeur';
+   const id='tsb-'+String(num).replace(/[^a-zA-Z0-9-]/g,'-');
+   const comp=(rec.component||'')+' '+(rec.summary||'');
+   await dbPut('sheets',{id,b:state.brand,m:state.model,e:'',cat:classifyOfficial(comp),titre:'TSB constructeur : '+String(title).slice(0,120),sym:rec.summary||'—',dtc:['Réf. TSB '+num],fix:rec.remedy||'Appliquer la procédure constructeur.',src:'NHTSA TSB '+num,off:1});n++;
+  }
+ }catch(e){}
+ if(!silent)toast('TSB : '+n+' fiche(s) ✓');renderSheets();return n;
+}
+async function syncRappelConso(silent){
+ if(!navigator.onLine){if(!silent)toast('Hors ligne');return 0;}
+ if(!state.brand||!state.model){if(!silent)toast('Sélectionnez marque et modèle');return 0;}
+ if(!silent)toast('Interrogation Rappel Conso…');let n=0;
+ try{
+  const q=encodeURIComponent('search(produit,"'+state.brand+' '+state.model+'") OR search(marque,"'+state.brand+'")');
+  const r=await fetch('https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/rappels-produits/records?limit=100&where='+q);
+  const j=await r.json();
+  for(const rec of(j.results||[])){
+   const hay=(rec.motif||'')+' '+(rec.produit||'')+' '+(rec.risques||'')+' '+(rec.conduites_a_suivre||'');
+   const id='rc-'+h(JSON.stringify(rec));
+   await dbPut('sheets',{id,b:state.brand,m:state.model,e:'',cat:classifyOfficial(hay),titre:'Rappel Conso : '+String(rec.motif||rec.produit||'Produit rappelé').slice(0,120),sym:(rec.produit||'')+(rec.risques?' — Risques : '+rec.risques:''),dtc:['Voir fiche Rappel Conso'],fix:rec.conduites_a_suivre||rec.url||'Voir fiche officielle',src:'Rappel Conso',off:1});n++;
+  }
+ }catch(e){}
+ if(!silent)toast('Rappel Conso : '+n+' fiche(s) ✓');renderSheets();return n;
+}
+async function syncSafetyGate(silent){
+ if(!navigator.onLine){if(!silent)toast('Hors ligne');return 0;}
+ if(!state.brand||!state.model){if(!silent)toast('Sélectionnez marque et modèle');return 0;}
+ if(!silent)toast('Interrogation Safety Gate…');let n=0;
+ const endpoints=[
+  {url:'https://ec.europa.eu/safety-gate/api/search?query='+encodeURIComponent(state.brand+' '+state.model)+'&size=200&type=product&category=motor_vehicles'},
+  {url:'https://ec.europa.eu/safety-gate/api/search?query='+encodeURIComponent(state.brand)+'&size=200&type=product&category=motor_vehicles'}
+ ];
+ for(const ep of endpoints){
+  if(n>=80)break;
+  try{
+   const r=await fetch(ep.url,{headers:{'Accept':'application/json'}});
+   if(!r.ok)continue;
+   const j=await r.json();
+   const list=Array.isArray(j)?j:(j.hits||j.results||j.data||j.records||j.alerts||[]);
+   for(const rec of list){
+    if(!rec)continue;
+    const titre=rec.title||rec.subject||rec.name||rec.alert_title||'Alerte Safety Gate';
+    const desc=rec.description||rec.alert_description||rec.summary||rec.text||rec.details||'';
+    const risk=rec.risk_type||rec.risk||rec.category||'';
+    const brand=rec.brand||rec.brand_name||rec.make||'';
+    const ref=rec.alert_reference||rec.reference||rec.number||rec.id||rec.ref||h(JSON.stringify(rec));
+    const hay=(titre+' '+desc+' '+risk+' '+brand).toLowerCase();
+    const brandOk=hay.includes(state.brand.toLowerCase())||hay.includes(stripAcc(state.brand).toLowerCase());
+    if(!brandOk)continue;
+    const id='sg-'+String(ref).replace(/[^a-zA-Z0-9-]/g,'-')+'-'+h(titre+desc);
+    await dbPut('sheets',{id,b:state.brand,m:state.model,e:'',cat:classifyOfficial(desc+' '+risk+' '+titre),titre:'Safety Gate UE : '+String(titre).slice(0,120),sym:(desc||'—')+(risk?' — Risque : '+risk:''),dtc:['Réf. Safety Gate '+ref],fix:'Contacter le réseau '+state.brand+'. Confirmer avec le VIN.',src:'EU Safety Gate '+ref,off:1});
+    n++;
+   }
+  }catch(e){}
+ }
+ if(!silent)toast('Safety Gate : '+n+' alerte(s) ✓');renderSheets();return n;
+}
+async function syncAll(){
+ if(!navigator.onLine)return toast('Hors ligne');
+ if(!state.brand||!state.model)return toast('Sélectionnez marque et modèle');
+ toast('Synchronisation complète…');
+ const a=await syncNHTSA(true);const t=await syncTSB(true);const b=await syncRappelConso(true);const c=await syncSafetyGate(true);
+ toast('✅ Total importé : '+(a+t+b+c)+' fiches');
+}
+
+async function autoUpdate(force){
+ if(!navigator.onLine){if(force)toast('Hors ligne');return 0;}
+ const last=parseInt(localStorage.getItem('mrt_last_auto_update')||'0');
+ const now=Date.now();
+ if(!force&&(now-last)<WEEK_MS)return 0;
+ const list=getWatchlist();
+ if(!list.length){if(force)toast('Aucun véhicule suivi');return 0;}
+ localStorage.setItem('mrt_last_auto_update',String(now));
+ const pb=state.brand,pm=state.model,pe=state.engine;
+ const batch=list.slice(0,AUTO_BATCH);
+ toast('🔄 MàJ auto : '+batch.length+' véhicule(s)…');
+ let total=0;
+ for(const v of batch){
+  state.brand=v.b;state.model=v.m;
+  total+=(await syncNHTSA(true))+(await syncTSB(true))+(await syncRappelConso(true))+(await syncSafetyGate(true));
+ }
+ state.brand=pb;state.model=pm;state.engine=pe;
+ toast('✅ MàJ auto terminée : +'+total+' fiches');
+ refreshAdmin();
+ return total;
+}
+
+function tryAdmin(){
+ if($('#adminPass').value===ADMIN_PASS){sessionStorage.setItem('mrt_admin','1');showAdminPanel();toast('Mode admin activé ✓');if(window.onAdminUnlocked)window.onAdminUnlocked();}
+ else toast('Mot de passe incorrect');
+}
+function showAdminPanel(){$('#adminGate').style.display='none';$('#adminPanel').style.display='';refreshAdmin();if(window.renderAccessAdmin)window.renderAccessAdmin();}
+
+async function ensureUpdated(){
+ if(localStorage.getItem('mrt_app_version')!==APP_VERSION){
+  localStorage.setItem('mrt_app_version',APP_VERSION);
+  if('caches'in window){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)));}
+ }
+}
+(async function init(){
+ netBadge();applyBg();await ensureUpdated();await seedIfEmpty();
+ renderGroupChips();await renderBrands();
+ if('serviceWorker'in navigator){try{await navigator.serviceWorker.register('sw.js');}catch(e){}}
+ if(window.checkAccess){await window.checkAccess();}
+ if(window.startAccessGuard)window.startAccessGuard();
+ await autoUpdate(false);
+})();
+</script>
+</body>
+</html>
