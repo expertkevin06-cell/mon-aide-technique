@@ -1,4 +1,4 @@
-/* assistant.js v5 — réponses auto + auto-complétion modèle + recherches externes */
+/* assistant.js v6 — Recherche améliorée (ID4, P20EE, normalisation) */
 (function(){
 'use strict';
 function info(c){return (window.dtcInfo&&window.dtcInfo(c))||null;}
@@ -23,11 +23,19 @@ const KEYWORD_DB=[
 {re:/bobine|allumage/i,label:'Bobines',info:'Ratés.',act:'Remplacement bobines.'},
 {re:/thermostat|refroidissement/i,label:'Refroidissement',info:'Thermostat, pompes.',act:'Contrôle circuit.'}];
 function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+/* Normalisation modèle : enlève points, espaces, tirets pour comparaison */
+function normalizeModel(s){return(s||'').toLowerCase().replace(/[.\-\s]/g,'');}
 async function detectVehicle(q){
  const brands=await dbAll('brands');const models=await dbAll('models');
  let b=null,m=null;
- for(const x of brands){if(x.name.length>=3&&q.includes(x.name.toLowerCase())){b=x.name;break;}}
- for(const x of models){if(x.m.length>=2){try{if(new RegExp('(^|[^a-z0-9])'+escRe(x.m.toLowerCase())+'($|[^a-z0-9])').test(q)){if(!m||x.b===b){m=x.m;if(!b)b=x.b;}}}catch(e){}}}
+ const qNorm=normalizeModel(q);
+ for(const x of brands){if(x.name.length>=3&&q.toLowerCase().includes(x.name.toLowerCase())){b=x.name;break;}}
+ for(const x of models){
+  const mNorm=normalizeModel(x.m);
+  if(qNorm.includes(mNorm)||q.toLowerCase().includes(x.m.toLowerCase())){
+   if(!m||x.b===b){m=x.m;if(!b)b=x.b;}
+  }
+ }
  return{b,m};
 }
 window.buildAssistant=async function(q){
@@ -55,7 +63,7 @@ window.onSearchInput=async function(q){
  if(html){box.innerHTML=html;box.style.display='';}else box.style.display='none';
 };
 window.pickSuggest=function(code){$('#globalSearch').value=code;document.getElementById('dtcSuggest').style.display='none';renderGlobal(code);};
-/* --- Auto-complétion modèles (3+ lettres) --- */
+/* Auto-complétion modèles avec normalisation */
 window.suggestModels=async function(q){
  q=(q||'').trim().toLowerCase();
  const box=document.getElementById('modelSuggest');
@@ -63,7 +71,8 @@ window.suggestModels=async function(q){
  if(q.length<3){box.style.display='none';return;}
  const models=await dbAll('models');
  const brands=await dbAll('brands');
- const matches=models.filter(x=>x.m.toLowerCase().includes(q)).slice(0,15);
+ const qNorm=normalizeModel(q);
+ const matches=models.filter(x=>normalizeModel(x.m).includes(qNorm)||x.m.toLowerCase().includes(q)).slice(0,15);
  if(!matches.length){box.style.display='none';return;}
  let html='<div class="muted">Modèles correspondants (cliquez pour compléter) :</div>';
  matches.forEach(m=>{const b=brands.find(x=>x.name===m.b);html+='<div class="rowItem" onclick="pickModel(\''+esc(m.b)+'\',\''+esc(m.m)+'\')"><b>'+esc(m.m)+'</b><span>'+esc(m.b)+(b?' • '+b.origin:'')+'</span></div>';});
@@ -74,7 +83,7 @@ window.pickModel=function(b,m){
  document.getElementById('modelSuggest').style.display='none';
  $('#dtcModel').focus();
 };
-/* --- Recherche 1 : DTC seul --- */
+/* Recherche 1 : DTC seul */
 window.searchDtcOnly=async function(){
  const q=($('#dtcOnly').value||'').trim();
  const box=$('#dtcResult1');
@@ -90,17 +99,21 @@ window.searchDtcOnly=async function(){
  html+='<hr><div class="muted">🔎 Recherches externes :</div><div class="actions"><a href="https://rappel.conso.gouv.fr/recherche?query='+encodeURIComponent(code)+'" target="_blank" class="chip">Rappel Conso</a><a href="https://ec.europa.eu/safety-gate-alerts/screen/search?query='+encodeURIComponent(code)+'" target="_blank" class="chip">Safety Gate</a><a href="https://www.largus.fr/recherche?q='+encodeURIComponent(code)+'" target="_blank" class="chip">L\'Argus</a></div>';
  box.innerHTML=html;
 };
-/* --- Recherche 2 : modèle + DTC (défaut connu ?) --- */
+/* Recherche 2 : modèle + DTC avec normalisation */
 window.searchDtcModel=async function(){
  const q=($('#dtcModel').value||'').trim().toLowerCase();
  const box=$('#dtcResult2');
  const m=q.match(/\b([pcbu]\d{4,5})\b/i);
- if(!m){box.innerHTML='<p class="muted">Format : « modèle suivi du dtc » (ex : 3008 P0016).</p>';return;}
+ if(!m){box.innerHTML='<p class="muted">Format : « modèle suivi du dtc » (ex : 3008 P0016, ID4 P0A80).</p>';return;}
  const code=m[1].toUpperCase();
  const models=await dbAll('models');
+ const qNorm=normalizeModel(q);
  let fm=null;
- for(const x of models){if(x.m.length>=2&&q.includes(x.m.toLowerCase())){fm=x;break;}}
- if(!fm){box.innerHTML='<p class="muted">Modèle non reconnu. Ex : « 3008 P0016 ».</p>';return;}
+ for(const x of models){
+  const mNorm=normalizeModel(x.m);
+  if(qNorm.includes(mNorm)||q.includes(x.m.toLowerCase())){fm=x;break;}
+ }
+ if(!fm){box.innerHTML='<p class="muted">Modèle non reconnu. Ex : « 3008 P0016 », « ID4 P0A80 ».</p>';return;}
  const i=info(code);
  const sheets=(await dbAll('sheets')).filter(s=>s.m===fm.m&&(s.dtc||[]).some(d=>d.toUpperCase()===code));
  const engines=(await dbAll('engines')).filter(x=>x.b===fm.b&&x.m===fm.m);
