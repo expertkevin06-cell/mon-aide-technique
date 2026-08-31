@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="110" fill="#0b0f1a"/>
+  <circle cx="256" cy="256" r="170" fill="none" stroke="#2e8fff" stroke-width="30"/>
+  <path d="M150 256 h60 l30 -70 l40 140 l30 -70 h52" fill="none" stroke="#f39c12" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="256" y="452" font-family="Arial" font-size="64" font-weight="bold" fill="#ffffff" text-anchor="middle">DTC</text>
+</svg>
