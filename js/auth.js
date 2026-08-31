@@ -4,15 +4,16 @@ const Auth = {
     try{
       const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
       return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
-    }catch(e){ // secours (contexte non sécurisé)
+    }catch(e){
       let h = 5381; for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0;
       return "fnv_" + (h >>> 0).toString(16);
     }
   },
   settings(){
     let s = Store.read(CONFIG.K.settings, null);
-    if (!s){
-      s = { adminUser: CONFIG.DEFAULT_ADMIN.user, adminHash: null, created: Date.now() };
+    // Si version différente (ancienne installation) : on repart des identifiants voulus
+    if (!s || s.authVersion !== CONFIG.AUTH_VERSION){
+      s = { adminUser: CONFIG.DEFAULT_ADMIN.user, adminHash: null, authVersion: CONFIG.AUTH_VERSION, created: Date.now() };
       Store.write(CONFIG.K.settings, s);
     }
     return s;
@@ -23,7 +24,6 @@ const Auth = {
       s.adminHash = await Auth.hash(CONFIG.DEFAULT_ADMIN.pass);
       Store.write(CONFIG.K.settings, s);
     }
-    // code tiers par défaut
     const tiers = Store.read(CONFIG.K.tiers, []);
     if (!tiers.some(t => t.code === CONFIG.DEFAULT_TIER.code)){
       tiers.push({ code: CONFIG.DEFAULT_TIER.code, name: CONFIG.DEFAULT_TIER.name, active: true, expires: null, created: Date.now() });
@@ -57,7 +57,6 @@ const Auth = {
     Store.audit("MDP_ADMIN", "modifié");
     return true;
   },
-  // ---- gestion des accès tiers ----
   tiers(){ return Store.read(CONFIG.K.tiers, []); },
   saveTiers(list){ Store.write(CONFIG.K.tiers, list); },
   addTier(name, expires){
