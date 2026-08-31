@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Générateur d'icônes PWA</title>
+<style>body{font-family:sans-serif;background:#0f172a;color:#f1f5f9;display:flex;flex-direction:column;align-items:center;padding:24px}canvas{border:1px solid #334155;border-radius:12px;margin:12px}button,input{margin:6px;padding:10px 16px;border-radius:8px;border:1px solid #334155;background:#273449;color:#f1f5f9;cursor:pointer}</style>
+</head>
+<body>
+<h1>🎨 Générateur d'icônes PWA</h1>
+<p>Chargez votre JPEG (optionnel) puis générez les icônes.</p>
+<input type="file" id="file" accept="image/jpeg,image/png">
+<button id="gen">⚙️ Générer les icônes</button>
+<canvas id="c512" width="512" height="512"></canvas>
+<div>
+  <button id="dl512">⬇️ icon-512.png</button>
+  <button id="dl192">⬇️ icon-192.png</button>
+</div>
+<script>
+let img=null;
+document.getElementById('file').addEventListener('change',(e)=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=(ev)=>{img=new Image();img.onload=draw;img.src=ev.target.result;};
+  r.readAsDataURL(f);
+});
+function draw(){
+  const c=document.getElementById('c512'),x=c.getContext('2d');
+  x.fillStyle='#1e293b';x.fillRect(0,0,512,512);
+  if(img){ // photo en fond, recadrée au centre
+    const s=Math.max(512/img.width,512/img.height);
+    const w=img.width*s,h=img.height*s;
+    x.drawImage(img,(512-w)/2,(512-h)/2,w,h);
+    x.fillStyle='rgba(15,23,42,0.35)';x.fillRect(0,0,512,512);
+  }
+  x.strokeStyle='#3b82f6';x.lineWidth=14;x.strokeRect(16,16,480,480);
+  x.font='240px sans-serif';x.textAlign='center';x.textBaseline='middle';
+  x.fillText('🔧',256,270);
+}
+document.getElementById('gen').addEventListener('click',draw);
+document.getElementById('dl512').addEventListener('click',()=>{
+  const a=document.createElement('a');a.download='icon-512.png';a.href=document.getElementById('c512').toDataURL('image/png');a.click();});
+document.getElementById('dl192').addEventListener('click',()=>{
+  const src=document.getElementById('c512');
+  const c=document.createElement('canvas');c.width=192;c.height=192;
+  c.getContext('2d').drawImage(src,0,0,192,192);
+  const a=document.createElement('a');a.download='icon-192.png';a.href=c.toDataURL('image/png');a.click();});
+draw();
+</script>
+</body>
+</html>
