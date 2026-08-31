@@ -1,0 +1,33 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Générateur d'icônes PWA</title></head>
+<body style="font-family:system-ui;background:#111;color:#fff;padding:2rem">
+<h2>Générateur d'icônes — DTC Diag Pro</h2>
+<p>Téléchargez les 3 fichiers et mettez-les dans <code>assets/icons/</code></p>
+<button onclick="gen(192,false)">1. icon-192.png</button>
+<button onclick="gen(512,false)">2. icon-512.png</button>
+<button onclick="gen(512,true)">3. icon-maskable-512.png</button>
+<div><canvas id="c" style="margin-top:1rem;border:1px solid #444"></canvas></div>
+<script>
+function draw(ctx, S, maskable){
+  ctx.fillStyle = "#0b0f1a"; ctx.fillRect(0,0,S,S);
+  const k = maskable ? 0.62 : 1;            // zone sûre maskable (80 %)
+  ctx.save(); ctx.translate(S/2,S/2); ctx.scale(k,k); ctx.translate(-S/2,-S/2);
+  ctx.strokeStyle = "#2e8fff"; ctx.lineWidth = S*0.058;
+  ctx.beginPath(); ctx.arc(S/2,S/2,S*0.33,0,7); ctx.stroke();
+  ctx.strokeStyle = "#f39c12"; ctx.lineWidth = S*0.05; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.beginPath();
+  ctx.moveTo(S*0.29,S/2); ctx.lineTo(S*0.41,S/2); ctx.lineTo(S*0.47,S*0.36);
+  ctx.lineTo(S*0.55,S*0.64); ctx.lineTo(S*0.61,S/2); ctx.lineTo(S*0.71,S/2);
+  ctx.stroke();
+  ctx.fillStyle = "#fff"; ctx.font = "bold "+(S*0.125)+"px Arial"; ctx.textAlign = "center";
+  ctx.fillText("DTC", S/2, S*0.88);
+  ctx.restore();
+}
+function gen(size, maskable){
+  const c = document.getElementById("c"); c.width = c.height = size;
+  const ctx = c.getContext("2d"); draw(ctx, size, maskable);
+  const a = document.createElement("a");
+  a.download = maskable ? "icon-maskable-512.png" : "icon-"+size+".png";
+  a.href = c.toDataURL("image/png"); a.click();
+}
+gen(512,false);
+</script></body></html>
